@@ -1,5 +1,7 @@
 import './App.css';
 import React from 'react';
+import { EasybaseProvider } from 'easybase-react';
+import ebconfig from './ebconfig';
 
 const dummyData = [
   { key: 1, chineseSimp: "我", chineseTrad: "我", pinyin: "wǒ", english: "I/me", partOfSpeech: "noun", needsPractice: false },
@@ -58,10 +60,12 @@ class VocabTable extends React.Component {
 
 function App() {
   return (
-    <div className="App">
-      <MainMenu />
-      <VocabTable />
-    </div>
+    <EasybaseProvider ebconfig={ebconfig}>
+      <div className="App">
+        <MainMenu />
+        <VocabTable />
+      </div>
+    </EasybaseProvider>
   );
 }
 
