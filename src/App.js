@@ -37,7 +37,6 @@ function VocabEntry(props) {
 function VocabTable(props) {
   const tableBody = props.vocabList.map((vocabEntry) => {
     vocabEntry.key = vocabEntry._key;
-    console.log(vocabEntry);
     return React.createElement(VocabEntry, vocabEntry);
   });
 
