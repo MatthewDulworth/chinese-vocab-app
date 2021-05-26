@@ -1,71 +1,75 @@
 import './App.css';
-import React from 'react';
-import { EasybaseProvider } from 'easybase-react';
-import ebconfig from './ebconfig';
-
-const dummyData = [
-  { key: 1, chineseSimp: "我", chineseTrad: "我", pinyin: "wǒ", english: "I/me", partOfSpeech: "noun", needsPractice: false },
-  { key: 2, chineseSimp: "是", chineseTrad: "是", pinyin: "shì", english: "is/to be", partOfSpeech: "verb", needsPractice: false },
-  { key: 3, chineseSimp: "现在", chineseTrad: "現在", pinyin: "xiànzài", english: "now", partOfSpeech: "time word", needsPractice: true }
-];
+import React, { useEffect, useState } from 'react';
+import { useEasybase } from 'easybase-react';
 
 function MainMenu(props) {
   return <div className="MainMenu"></div>;
 }
 
-function VocabEntry(props) {
+function VocabHeader(props) {
   return (
-    <tr className="VocabEntry">
-      <td className="chinese_simp">{props.chineseSimp}</td>
-      <td className="chinese_trad">{props.chineseTrad}</td>
-      <td className="pinyin">{props.pinyin}</td>
-      <td className="english">{props.english}</td>
-      <td className="part_of_speech">{props.partOfSpeech}</td>
-      <td className="needs_practice">{props.needsPractice ? "true" : "false"}</td>
+    <tr>
+      <td>Chinese (Simplified)</td>
+      <td>Chinese (Traditional)</td>
+      <td>Pinyin</td>
+      <td>English</td>
+      <td>Part of Seeech</td>
+      <td>Notes</td>
+      <td>Needs Practice</td>
     </tr>
   );
 }
 
-class VocabTable extends React.Component {
-  constructor(props) {
-    super(props);
+function VocabEntry(props) {
+  return (
+    <tr className="VocabEntry">
+      <td className="chinese_simp">{props.chinesesimplified}</td>
+      <td className="chinese_trad">{props.chinesetraditional}</td>
+      <td className="pinyin">{props.pinyin}</td>
+      <td className="english">{props.english}</td>
+      <td className="part_of_speech">{props.partofspeech}</td>
+      <td className="part_of_speech">{props.notes}</td>
+      <td className="needs_practice">{props.needspractice ? "true" : "false"}</td>
+    </tr>
+  );
+}
 
-    this.state = {
-      vocab: dummyData
-    }
-  }
+function VocabTable(props) {
+  const tableBody = props.vocabList.map((vocabEntry) => {
+    vocabEntry.key = vocabEntry._key;
+    console.log(vocabEntry);
+    return React.createElement(VocabEntry, vocabEntry);
+  });
 
-  renderTableHeader() {
-    const header = Object.keys(this.state.vocab[0]);
-    const entries = header.map((key, index) => <th key={index}>{key.toUpperCase()}</th>).slice(1);
-    return <tr>{entries}</tr>
-  }
-
-  render() {
-    const entries = this.state.vocab.map((entry) => React.createElement(VocabEntry, entry));
-    const tableHeader = this.renderTableHeader();
-
-    return (
-      <table id="VocabTable">
-        <thead>
-          {tableHeader}
-        </thead>
-        <tbody>
-          {entries}
-        </tbody>
-      </table>
-    );
-  }
+  return (
+    <table id="VocabTable">
+      <thead>
+        <VocabHeader />
+      </thead>
+      <tbody>
+        {tableBody}
+      </tbody>
+    </table>
+  );
 }
 
 function App() {
+  const [vocabList, setEasybaseData] = useState([]);
+  const { db } = useEasybase();
+
+  useEffect(() => {
+    async function mounted() {
+      const ebData = await db("VOCAB").return().all();
+      setEasybaseData(ebData);
+    };
+    mounted();
+  }, []);
+
   return (
-    <EasybaseProvider ebconfig={ebconfig}>
-      <div className="App">
-        <MainMenu />
-        <VocabTable />
-      </div>
-    </EasybaseProvider>
+    <div className="App">
+      <MainMenu />
+      <VocabTable vocabList={vocabList} />
+    </div>
   );
 }
 
