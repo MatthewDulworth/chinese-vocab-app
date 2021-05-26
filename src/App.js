@@ -9,13 +9,13 @@ function MainMenu(props) {
 function VocabHeader(props) {
   return (
     <tr>
-      <td>Chinese (Simplified)</td>
-      <td>Chinese (Traditional)</td>
-      <td>Pinyin</td>
-      <td>English</td>
-      <td>Part of Seeech</td>
-      <td>Needs Practice</td>
-      <td>Notes</td>
+      <th>Chinese (Simplified)</th>
+      <th>Chinese (Traditional)</th>
+      <th>Pinyin</th>
+      <th>English</th>
+      <th>Part of Seeech</th>
+      <th>Needs Practice</th>
+      <th>Notes</th>
     </tr>
   );
 }
@@ -36,8 +36,7 @@ function VocabEntry(props) {
 
 function VocabTable(props) {
   const tableBody = props.vocabList.map((vocabEntry) => {
-    vocabEntry.key = vocabEntry._key;
-    return React.createElement(VocabEntry, vocabEntry);
+    return React.createElement(VocabEntry, {...vocabEntry, key: vocabEntry._key});
   });
 
   return (
