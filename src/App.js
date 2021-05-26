@@ -14,8 +14,8 @@ function VocabHeader(props) {
       <td>Pinyin</td>
       <td>English</td>
       <td>Part of Seeech</td>
-      <td>Notes</td>
       <td>Needs Practice</td>
+      <td>Notes</td>
     </tr>
   );
 }
@@ -28,8 +28,8 @@ function VocabEntry(props) {
       <td className="pinyin">{props.pinyin}</td>
       <td className="english">{props.english}</td>
       <td className="part_of_speech">{props.partofspeech}</td>
-      <td className="part_of_speech">{props.notes}</td>
       <td className="needs_practice">{props.needspractice ? "true" : "false"}</td>
+      <td className="part_of_speech">{props.notes}</td>
     </tr>
   );
 }
