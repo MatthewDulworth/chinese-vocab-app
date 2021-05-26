@@ -2,71 +2,85 @@ import './App.css';
 import React, { useEffect, useState } from 'react';
 import { useEasybase } from 'easybase-react';
 
-function MainMenu(props) {
+function MainMenu() {
   return <div className="MainMenu"></div>;
 }
 
-function VocabHeader(props) {
+function VocabHeader() {
   return (
-    <tr>
-      <th>Chinese (Simplified)</th>
-      <th>Chinese (Traditional)</th>
-      <th>Pinyin</th>
-      <th>English</th>
-      <th>Part of Seeech</th>
-      <th>Needs Practice</th>
-      <th>Notes</th>
-    </tr>
+    <header id="VocabHeader">
+      <div>Chinese (Simplified)</div>
+      <div>Chinese (Traditional)</div>
+      <div>Pinyin</div>
+      <div>English</div>
+      <div>Part of Seeech</div>
+      <div>Needs Practice</div>
+      <div>Notes</div>
+    </header>
   );
 }
 
 function VocabEntry(props) {
+
+  const doCellChange = (event) => {
+    props.handleCellChange(event, props.index);
+  }
+
   return (
-    <tr className="VocabEntry">
-      <td className="chinese_simp">{props.chinesesimplified}</td>
-      <td className="chinese_trad">{props.chinesetraditional}</td>
-      <td className="pinyin">{props.pinyin}</td>
-      <td className="english">{props.english}</td>
-      <td className="part_of_speech">{props.partofspeech}</td>
-      <td className="needs_practice">{props.needspractice ? "true" : "false"}</td>
-      <td className="part_of_speech">{props.notes}</td>
-    </tr>
+    <form className="VocabEntry">
+      <input type="text" onChange={doCellChange} className="chinesesimplified"  value={props.chinesesimplified}/> 
+      <input type="text" onChange={doCellChange} className="chinesetraditional" value={props.chinesetraditional}/>
+      <input type="text" onChange={doCellChange} className="pinyin"             value={props.pinyin}/>
+      <input type="text" onChange={doCellChange} className="english"            value={props.english}/>
+      <input type="text" onChange={doCellChange} className="partofspeech"       value={props.partofspeech}/>
+      <input type="text" onChange={doCellChange} className="needspractice"      value={props.needspractice ? "true" : "false"}/>
+      <input type="text" onChange={doCellChange} className="notes"              value={props.notes ? props.notes : ""}/>
+    </form>
   );
 }
 
 function VocabTable(props) {
-  const tableBody = props.vocabList.map((vocabEntry) => {
-    return React.createElement(VocabEntry, {...vocabEntry, key: vocabEntry._key});
+  const tableBody = props.vocabList.map((vocabEntry, index) => {
+    return React.createElement(VocabEntry, {
+      ...vocabEntry,
+      key: vocabEntry._key,
+      handleCellChange: props.handleCellChange,
+      index: index
+    });
   });
 
   return (
-    <table id="VocabTable">
-      <thead>
-        <VocabHeader />
-      </thead>
-      <tbody>
-        {tableBody}
-      </tbody>
-    </table>
+    <section id="VocabTable">
+      <VocabHeader />
+      {tableBody}
+    </section>
   );
 }
 
 function App() {
-  const [vocabList, setEasybaseData] = useState([]);
+  const [vocabList, setVocabList] = useState([]);
   const { db } = useEasybase();
 
   useEffect(() => {
     async function mounted() {
       const ebData = await db("VOCAB").return().all();
-      setEasybaseData(ebData);
+      setVocabList(ebData);
+      console.log("fetching");
     };
     mounted();
-  }, []);
+  }, [db]);
+
+  const handleCellChange = (event, entryIndex) => {
+    const newVocabList = vocabList.splice(0);
+    const targetObj = newVocabList[entryIndex];
+    targetObj[event.target.className] = event.target.value;
+    setVocabList(newVocabList);
+  }
 
   return (
-    <div className="App">
+    <div id="App">
       <MainMenu />
-      <VocabTable vocabList={vocabList} />
+      <VocabTable vocabList={vocabList} handleCellChange={handleCellChange}></VocabTable>
     </div>
   );
 }

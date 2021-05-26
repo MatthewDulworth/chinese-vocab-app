@@ -1,4 +1,6 @@
-
+#App{
+  text-align: center;
+}
 
 #VocabTable {
   display: grid;
@@ -8,12 +10,12 @@
   grid-template-columns: repeat(7, auto);
 }
 
-/* remove thead, tbody, and tr from the css grid */
-#VocabTable thead, #VocabTable tbody, #VocabTable tr{
+/* remove grid */
+#VocabHeader, .VocabEntry{
   display: contents;
 }
 
-#VocabTable th {
+#VocabHeader div {
   text-align: start;
   position: sticky;
   top: 0;
@@ -21,6 +23,6 @@
 }
 
 /* all grid cells */
-#VocabTable th, #VocabTable td {
+#VocabHeader > *, #VocabEntry > *{
   padding-top: 10px;
 }
