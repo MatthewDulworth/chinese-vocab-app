@@ -61,14 +61,15 @@ function App() {
   const [vocabList, setVocabList] = useState([]);
   const { db } = useEasybase();
 
+  async function fetchVocabList() {
+    const ebData = await db("VOCAB").return().all();
+    setVocabList(ebData);
+    console.log("%cfetched vocab list", "color: yellow;");
+  };
+
   useEffect(() => {
-    async function mounted() {
-      const ebData = await db("VOCAB").return().all();
-      setVocabList(ebData);
-      console.log("fetching");
-    };
-    mounted();
-  }, [db]);
+    fetchVocabList();
+  }, []);
 
   const handleCellChange = (event, entryIndex) => {
     const newVocabList = vocabList.splice(0);
@@ -81,6 +82,7 @@ function App() {
     <div id="App">
       <MainMenu />
       <VocabTable vocabList={vocabList} handleCellChange={handleCellChange}></VocabTable>
+      <button onClick={fetchVocabList}>Fetch Data</button>
     </div>
   );
 }
