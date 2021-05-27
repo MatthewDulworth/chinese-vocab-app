@@ -86,7 +86,7 @@ function AddVocabDialouge({ fetchVocabList }) {
         Chinese (Traditional)
         <input type="text" onChange={handleChange} value="" className="chinesetraditional" />
         Pinyin
-        <input type="text" onChange={handleChange} value="" className="pinyin"/>
+        <input type="text" onChange={handleChange} value="" className="pinyin" />
         English
         <input type="text" onChange={handleChange} value="" className="english" />
         Part of Speech
@@ -109,6 +109,7 @@ function AddVocabButton() {
 }
 
 function App() {
+  const [inEditMode, setEditMode] = useState(false);
   const [vocabList, setVocabList] = useState([]);
   const { db } = useEasybase();
 
@@ -123,10 +124,20 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleEditMode = (event) => {
+    console.log(`${inEditMode ? "exiting edit mode" : "entering edit mode"}`);
+    setEditMode(!inEditMode);
+  }
+
   const handleCellChange = (event, entryIndex) => {
+    if(!inEditMode) {
+      event.preventDefault();
+      return;
+    }
+
     const newVocabList = vocabList.splice(0);
     const targetEntry = newVocabList[entryIndex];
-  
+
     if (event.target.type === "checkbox") {
       targetEntry[event.target.className] = event.target.checked;
     } else {
@@ -140,6 +151,7 @@ function App() {
       <MainMenu />
       <VocabTable vocabList={vocabList} handleCellChange={handleCellChange}></VocabTable>
       <button onClick={fetchVocabList}>Fetch Data</button>
+      <button onClick={handleEditMode}>{inEditMode ? "Save" : "Edit"}</button>
       <AddVocabButton fetchVocabList={fetchVocabList} />
       <AddVocabDialouge fetchVocabList={fetchVocabList} />
     </div>
