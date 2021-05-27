@@ -27,12 +27,12 @@ function VocabEntry(props) {
   }
 
   return (
-    <form className="VocabEntry">
+    <form className="VocabEntry" spellCheck="false">
       <input type="text" onChange={doCellChange} className="chinesesimplified" value={props.chinesesimplified} />
       <input type="text" onChange={doCellChange} className="chinesetraditional" value={props.chinesetraditional} />
       <input type="text" onChange={doCellChange} className="pinyin" value={props.pinyin} />
-      <input type="text" onChange={doCellChange} className="english" value={props.english} />
-      <input type="text" onChange={doCellChange} className="partofspeech" value={props.partofspeech} />
+      <input type="text" onChange={doCellChange} className="english" value={props.english} spellCheck="true"/>
+      <input type="text" onChange={doCellChange} className="partofspeech" value={props.partofspeech} spellCheck="true"/>
       <input type="checkbox" onChange={doCellChange} className="needspractice" checked={props.needspractice} />
       <input type="text" onChange={doCellChange} className="notes" value={props.notes ? props.notes : ""} />
     </form>
@@ -69,6 +69,7 @@ function AddVocabDialouge({ fetchVocabList }) {
       updatedEntry[event.target.className] = event.target.value;
     }
     setVocabEntry(updatedEntry);
+    console.log(vocabEntry);
   }
 
   const submitEntry = async (event) => {
@@ -80,21 +81,21 @@ function AddVocabDialouge({ fetchVocabList }) {
 
   return (
     <div id="AddVocabDialouge">
-      <form>
+      <form spellCheck="false">
         Chinese (Simplified)
-        <input type="text" onChange={handleChange} value="" className="chinesesimplified" />
+        <input type="text" onChange={handleChange} defaultValue="" className="chinesesimplified" />
         Chinese (Traditional)
-        <input type="text" onChange={handleChange} value="" className="chinesetraditional" />
+        <input type="text" onChange={handleChange} defaultValue="" className="chinesetraditional" />
         Pinyin
-        <input type="text" onChange={handleChange} value="" className="pinyin" />
+        <input type="text" onChange={handleChange} defaultValue="" className="pinyin" />
         English
-        <input type="text" onChange={handleChange} value="" className="english" />
+        <input type="text" onChange={handleChange} defaultValue="" className="english" spellCheck="true"/>
         Part of Speech
-        <input type="text" onChange={handleChange} value="" className="partofspeech" />
+        <input type="text" onChange={handleChange} defaultValue="" className="partofspeech" spellCheck="true"/>
         Needs Practice?
         <input type="checkbox" onChange={handleChange} className="needspractice" />
         Notes
-        <input type="text" onChange={handleChange} value="" className="notes" />
+        <input type="text" onChange={handleChange} defaultValue="" className="notes" />
         <input type="submit" onClick={submitEntry} />
       </form>
     </div>
