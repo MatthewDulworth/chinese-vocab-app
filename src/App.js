@@ -33,7 +33,7 @@ function VocabEntry(props) {
       <input type="text" onChange={doCellChange} className="pinyin" value={props.pinyin} />
       <input type="text" onChange={doCellChange} className="english" value={props.english} />
       <input type="text" onChange={doCellChange} className="partofspeech" value={props.partofspeech} />
-      <input type="text" onChange={doCellChange} className="needspractice" value={props.needspractice ? "true" : "false"} />
+      <input type="checkbox" onChange={doCellChange} className="needspractice" checked={props.needspractice} />
       <input type="text" onChange={doCellChange} className="notes" value={props.notes ? props.notes : ""} />
     </form>
   );
@@ -125,8 +125,13 @@ function App() {
 
   const handleCellChange = (event, entryIndex) => {
     const newVocabList = vocabList.splice(0);
-    const targetObj = newVocabList[entryIndex];
-    targetObj[event.target.className] = event.target.value;
+    const targetEntry = newVocabList[entryIndex];
+  
+    if (event.target.type === "checkbox") {
+      targetEntry[event.target.className] = event.target.checked;
+    } else {
+      targetEntry[event.target.className] = event.target.value;
+    }
     setVocabList(newVocabList);
   }
 
