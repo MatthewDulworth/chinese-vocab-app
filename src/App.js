@@ -28,13 +28,13 @@ function VocabEntry(props) {
 
   return (
     <form className="VocabEntry">
-      <input type="text" onChange={doCellChange} className="chinesesimplified"  value={props.chinesesimplified}/> 
-      <input type="text" onChange={doCellChange} className="chinesetraditional" value={props.chinesetraditional}/>
-      <input type="text" onChange={doCellChange} className="pinyin"             value={props.pinyin}/>
-      <input type="text" onChange={doCellChange} className="english"            value={props.english}/>
-      <input type="text" onChange={doCellChange} className="partofspeech"       value={props.partofspeech}/>
-      <input type="text" onChange={doCellChange} className="needspractice"      value={props.needspractice ? "true" : "false"}/>
-      <input type="text" onChange={doCellChange} className="notes"              value={props.notes ? props.notes : ""}/>
+      <input type="text" onChange={doCellChange} className="chinesesimplified" value={props.chinesesimplified} />
+      <input type="text" onChange={doCellChange} className="chinesetraditional" value={props.chinesetraditional} />
+      <input type="text" onChange={doCellChange} className="pinyin" value={props.pinyin} />
+      <input type="text" onChange={doCellChange} className="english" value={props.english} />
+      <input type="text" onChange={doCellChange} className="partofspeech" value={props.partofspeech} />
+      <input type="text" onChange={doCellChange} className="needspractice" value={props.needspractice ? "true" : "false"} />
+      <input type="text" onChange={doCellChange} className="notes" value={props.notes ? props.notes : ""} />
     </form>
   );
 }
@@ -57,6 +57,57 @@ function VocabTable(props) {
   );
 }
 
+function AddVocabDialouge({ fetchVocabList }) {
+  const [vocabEntry, setVocabEntry] = useState({ needspractice: false });
+  const { db } = useEasybase();
+
+  const handleChange = (event) => {
+    const updatedEntry = { ...vocabEntry };
+    if (event.target.type === "checkbox") {
+      updatedEntry[event.target.className] = event.target.checked;
+    } else {
+      updatedEntry[event.target.className] = event.target.value;
+    }
+    setVocabEntry(updatedEntry);
+  }
+
+  const submitEntry = async (event) => {
+    event.preventDefault();
+    const recs = await db("VOCAB").insert(vocabEntry).one();
+    fetchVocabList();
+    console.log(`%c submitted ${recs} vocab entry(ies)`, "color: blue", vocabEntry);
+  }
+
+  return (
+    <div id="AddVocabDialouge">
+      <form>
+        Chinese (Simplified)
+        <input type="text" onChange={handleChange} value="" className="chinesesimplified" />
+        Chinese (Traditional)
+        <input type="text" onChange={handleChange} value="" className="chinesetraditional" />
+        Pinyin
+        <input type="text" onChange={handleChange} value="" className="pinyin"/>
+        English
+        <input type="text" onChange={handleChange} value="" className="english" />
+        Part of Speech
+        <input type="text" onChange={handleChange} value="" className="partofspeech" />
+        Needs Practice?
+        <input type="checkbox" onChange={handleChange} className="needspractice" />
+        Notes
+        <input type="text" onChange={handleChange} value="" className="notes" />
+        <input type="submit" onClick={submitEntry} />
+      </form>
+    </div>
+  );
+}
+
+function AddVocabButton() {
+  const handleClick = async () => {
+
+  }
+  return <button onClick={handleClick}>Add Vocab Entry</button>
+}
+
 function App() {
   const [vocabList, setVocabList] = useState([]);
   const { db } = useEasybase();
@@ -69,6 +120,7 @@ function App() {
 
   useEffect(() => {
     fetchVocabList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCellChange = (event, entryIndex) => {
@@ -83,6 +135,8 @@ function App() {
       <MainMenu />
       <VocabTable vocabList={vocabList} handleCellChange={handleCellChange}></VocabTable>
       <button onClick={fetchVocabList}>Fetch Data</button>
+      <AddVocabButton fetchVocabList={fetchVocabList} />
+      <AddVocabDialouge fetchVocabList={fetchVocabList} />
     </div>
   );
 }
