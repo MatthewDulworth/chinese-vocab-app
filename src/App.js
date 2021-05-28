@@ -67,7 +67,7 @@ function VocabTable(props) {
 
 function AddVocabDialouge(props) {
   const [vocabEntry, setVocabEntry] = useState({ needspractice: false });
-  const { db } = useEasybase();
+  const TABLE = useEasybase().db("VOCAB");
 
   const handleChange = (event) => {
     const updatedEntry = { ...vocabEntry };
@@ -77,7 +77,6 @@ function AddVocabDialouge(props) {
       updatedEntry[event.target.className] = event.target.value;
     }
     setVocabEntry(updatedEntry);
-    console.log(vocabEntry);
   }
 
   const submitEntry = async (event) => {
@@ -85,7 +84,7 @@ function AddVocabDialouge(props) {
     if(!window.confirm("Are you sure you want to add?")){
       return;
     }
-    const recs = await db("VOCAB").insert(vocabEntry).one();
+    const recs = await TABLE.insert(vocabEntry).one();
     props.fetchVocabList();
     console.log(`%c submitted ${recs} vocab entry(ies)`, "color: blue", vocabEntry);
   }
@@ -120,12 +119,21 @@ function App() {
   const editedEntries = useRef(new Map());
   const pristineVocabList = useRef([]);
   const { db } = useEasybase();
+  const TABLE = db("VOCAB");
 
   const fetchVocabList = async () => {
-    const ebData = await db("VOCAB").return().all();
+    const ebData = await TABLE.return().all();
     setVocabList(ebData);
     console.log("%cfetched vocab list", "color: yellow;");
   };
+
+  const pushVocabList = async () => {
+    editedEntries.current.forEach((entry, key) => {
+      console.log(entry);
+      TABLE.where({_key: key}).set(entry).one();
+    });
+    fetchVocabList();
+  }
 
   const handleVocabUnfocus = (index) => {
     if (!inEditMode) {
@@ -147,13 +155,13 @@ function App() {
     }
   }
 
-  const handleEditMode = (event) => {
+  const handleEditMode = () => {
     if (!inEditMode) {
-      // entering edit mode
+      // entering edit mode, save a pristine copy of the vocabList
       pristineVocabList.current = vocabList.map((entry) => ({ ...entry }));
     } else {
-      // exiting edit mode
-      editedEntries.current.forEach((value) => console.log(value));
+      // exiting edit mode, update the database
+      pushVocabList();
       pristineVocabList.current = [];
       editedEntries.current.clear();
     }
