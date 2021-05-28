@@ -2,12 +2,13 @@ import './App.css';
 import React, { useEffect, useRef, useState } from 'react';
 import { useEasybase } from 'easybase-react';
 import FocusWithin from 'react-focus-within'
+import { Fragment } from 'react';
 
 function MainMenu() {
   return <div className="MainMenu"></div>;
 }
 
-function VocabHeader() {
+function VocabHeader(props) {
   return (
     <header id="VocabHeader">
       <div>Chinese (Simplified)</div>
@@ -17,6 +18,7 @@ function VocabHeader() {
       <div>Part of Seeech</div>
       <div>Needs Practice</div>
       <div>Notes</div>
+      {props.inEditMode && <div></div>}
     </header>
   );
 }
@@ -47,19 +49,24 @@ function VocabEntry(props) {
 }
 
 function VocabTable(props) {
+
   const tableBody = props.vocabList.map((vocabEntry, index) => {
-    return React.createElement(VocabEntry, {
-      ...vocabEntry,
-      key: vocabEntry._key,
-      handleCellChange: props.handleCellChange,
-      handleVocabUnfocus: props.handleVocabUnfocus,
-      index: index
-    });
+    return (
+      <Fragment key={vocabEntry._key}>
+        {React.createElement(VocabEntry, {
+          ...vocabEntry,
+          handleCellChange: props.handleCellChange,
+          handleVocabUnfocus: props.handleVocabUnfocus,
+          index: index,
+        })}
+        { props.inEditMode && <button>Delete Entry</button>}
+      </Fragment>
+    );
   });
 
   return (
-    <section id="VocabTable">
-      <VocabHeader />
+    <section id="VocabTable" className={props.inEditMode ? "tableEditMode" : "tableNormalMode"}>
+      <VocabHeader inEditMode={props.inEditMode}/>
       {tableBody}
     </section>
   );
@@ -81,7 +88,7 @@ function AddVocabDialouge(props) {
 
   const submitEntry = async (event) => {
     event.preventDefault();
-    if(!window.confirm("Are you sure you want to add?")){
+    if (!window.confirm("Are you sure you want to add?")) {
       return;
     }
     const recs = await TABLE.insert(vocabEntry).one();
@@ -130,10 +137,10 @@ function App() {
   const pushVocabList = async () => {
     editedEntries.current.forEach((entry, key) => {
       console.log(entry);
-      TABLE.where({_key: key}).set(entry).one();
+      TABLE.where({ _key: key }).set(entry).one();
     });
-    
-    if(editedEntries.current.size !== 0) {
+
+    if (editedEntries.current.size !== 0) {
       fetchVocabList();
     }
   }
@@ -174,11 +181,11 @@ function App() {
   }
 
   const handleCancelEdit = () => {
-    if(!inEditMode) {
+    if (!inEditMode) {
       console.error("wtf should only be accessible in edit mode");
       return;
     }
-    
+
     const newVocabList = pristineVocabList.current.splice(0);
     setVocabList(newVocabList);
     pristineVocabList.current = [];
@@ -217,6 +224,7 @@ function App() {
         vocabList={vocabList}
         handleCellChange={handleCellEdit}
         handleVocabUnfocus={handleVocabUnfocus}
+        inEditMode={inEditMode}
       />
       <button onClick={fetchVocabList}>Fetch Data</button>
       <button onClick={handleEditMode}>{inEditMode ? "Save" : "Edit"}</button>

@@ -11,7 +11,14 @@
   min-width: 100%;
   border-collapse: collapse;
   padding: 20px;
+}
+
+.tableNormalMode {
   grid-template-columns: repeat(7, auto);
+}
+
+.tableEditMode {
+  grid-template-columns: repeat(8, auto);
 }
 
 /* remove grid */
