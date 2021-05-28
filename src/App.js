@@ -132,7 +132,10 @@ function App() {
       console.log(entry);
       TABLE.where({_key: key}).set(entry).one();
     });
-    fetchVocabList();
+    
+    if(editedEntries.current.size !== 0) {
+      fetchVocabList();
+    }
   }
 
   const handleVocabUnfocus = (index) => {
