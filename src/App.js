@@ -66,7 +66,7 @@ function VocabTable(props) {
   );
 }
 
-function AddVocabDialouge({ fetchVocabList }) {
+function AddVocabDialouge(props) {
   const [vocabEntry, setVocabEntry] = useState({ needspractice: false });
   const { db } = useEasybase();
 
@@ -84,7 +84,7 @@ function AddVocabDialouge({ fetchVocabList }) {
   const submitEntry = async (event) => {
     event.preventDefault();
     const recs = await db("VOCAB").insert(vocabEntry).one();
-    fetchVocabList();
+    props.fetchVocabList();
     console.log(`%c submitted ${recs} vocab entry(ies)`, "color: blue", vocabEntry);
   }
 
