@@ -170,6 +170,21 @@ function App() {
     setEditMode(!inEditMode);
   }
 
+  const handleCancelEdit = () => {
+    if(!inEditMode) {
+      console.error("wtf should only be accessible in edit mode");
+      return;
+    }
+    
+    const newVocabList = pristineVocabList.current.splice(0);
+    setVocabList(newVocabList);
+    pristineVocabList.current = [];
+    editedEntries.current.clear();
+    setEditMode(false);
+    console.log("edit canceled");
+    console.log("exiting edit mode");
+  }
+
   const handleCellEdit = (event, entryIndex) => {
     if (!inEditMode) {
       event.preventDefault();
@@ -202,6 +217,7 @@ function App() {
       />
       <button onClick={fetchVocabList}>Fetch Data</button>
       <button onClick={handleEditMode}>{inEditMode ? "Save" : "Edit"}</button>
+      {inEditMode && <button onClick={handleCancelEdit}>Cancel</button>}
       <AddVocabDialouge fetchVocabList={fetchVocabList} />
     </div>
   );
