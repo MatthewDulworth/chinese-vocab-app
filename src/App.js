@@ -29,7 +29,6 @@ function VocabEntry(props) {
 
   return (
     <FocusWithin
-      onFocus={() => props.handleVocabFocus(props.index)}
       onBlur={() => props.handleVocabUnfocus(props.index)}
     >
       {({ focusProps, isFocused }) => (
@@ -126,22 +125,11 @@ function App() {
   const pristineVocabList = useRef([]);
   const { db } = useEasybase();
 
-  async function fetchVocabList() {
+  const fetchVocabList = async () => {
     const ebData = await db("VOCAB").return().all();
     setVocabList(ebData);
     console.log("%cfetched vocab list", "color: yellow;");
   };
-
-  useEffect(() => {
-    fetchVocabList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleVocabFocus = (index) => {
-    if (!inEditMode) {
-      return;
-    }
-  }
 
   const handleVocabUnfocus = (index) => {
     if (!inEditMode) {
@@ -156,7 +144,7 @@ function App() {
       console.log("an edit was made");
     } else {
       // if the entry was previously edited but is now pristine, remove it from the edited list
-      if(editedEntries.current.has(vocabEntry._key)) {
+      if (editedEntries.current.has(vocabEntry._key)) {
         editedEntries.current.delete(vocabEntry._key);
       }
       console.log("no edit");
@@ -195,13 +183,17 @@ function App() {
     setVocabList(newVocabList);
   }
 
+  useEffect(() => {
+    fetchVocabList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div id="App">
       <MainMenu />
       <VocabTable
         vocabList={vocabList}
         handleCellChange={handleCellEdit}
-        handleVocabFocus={handleVocabFocus}
         handleVocabUnfocus={handleVocabUnfocus}
       />
       <button onClick={fetchVocabList}>Fetch Data</button>
