@@ -2,7 +2,7 @@
   box-sizing: border-box;
 }
 
-#App{
+#App {
   text-align: center;
 }
 
@@ -15,7 +15,8 @@
 }
 
 /* remove grid */
-#VocabHeader, .VocabEntry{
+
+#VocabHeader, .VocabEntry {
   display: contents;
 }
 
@@ -27,6 +28,33 @@
 }
 
 /* all grid cells */
-#VocabHeader > *, #VocabEntry > *{
+
+#VocabHeader>*, #VocabEntry>* {
   padding-top: 10px;
+}
+
+#AddVocabDialouge {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding-top: 20px;
+}
+
+#AddVocabDialouge>form {
+  margin-top: 20px;
+  max-width: 600px;
+  border: 1px solid black;
+  padding: 2px;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  row-gap: 10px;
+  column-gap: 5px;
+}
+
+#AddVocabDialouge>form:nth-child(even) {
+  text-align: right;
+}
+
+#AddVocabDialouge button {
+  grid-column-end: span 2;
 }

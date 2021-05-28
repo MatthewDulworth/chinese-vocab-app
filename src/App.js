@@ -52,7 +52,6 @@ function VocabTable(props) {
       ...vocabEntry,
       key: vocabEntry._key,
       handleCellChange: props.handleCellChange,
-      handleVocabFocus: props.handleVocabFocus,
       handleVocabUnfocus: props.handleVocabUnfocus,
       index: index
     });
@@ -83,6 +82,9 @@ function AddVocabDialouge(props) {
 
   const submitEntry = async (event) => {
     event.preventDefault();
+    if(!window.confirm("Are you sure you want to add?")){
+      return;
+    }
     const recs = await db("VOCAB").insert(vocabEntry).one();
     props.fetchVocabList();
     console.log(`%c submitted ${recs} vocab entry(ies)`, "color: blue", vocabEntry);
@@ -90,6 +92,7 @@ function AddVocabDialouge(props) {
 
   return (
     <div id="AddVocabDialouge">
+      <div>Add Vocab Entry</div>
       <form spellCheck="false">
         Chinese (Simplified)
         <input type="text" onChange={handleChange} defaultValue="" className="chinesesimplified" />
@@ -105,17 +108,10 @@ function AddVocabDialouge(props) {
         <input type="checkbox" onChange={handleChange} className="needspractice" />
         Notes
         <input type="text" onChange={handleChange} defaultValue="" className="notes" />
-        <input type="submit" onClick={submitEntry} />
+        <button onClick={submitEntry}>Submit</button>
       </form>
     </div>
   );
-}
-
-function AddVocabButton() {
-  const handleClick = async () => {
-
-  }
-  return <button onClick={handleClick}>Add Vocab Entry</button>
 }
 
 function App() {
@@ -198,7 +194,6 @@ function App() {
       />
       <button onClick={fetchVocabList}>Fetch Data</button>
       <button onClick={handleEditMode}>{inEditMode ? "Save" : "Edit"}</button>
-      <AddVocabButton fetchVocabList={fetchVocabList} />
       <AddVocabDialouge fetchVocabList={fetchVocabList} />
     </div>
   );
