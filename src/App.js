@@ -92,7 +92,7 @@ function AddVocabDialouge(props) {
     }
     const recs = await TABLE.insert(vocabEntry).one();
     props.fetchVocabList();
-    console.log(`%c submitted ${recs} vocab entry(ies)`, "color: blue", vocabEntry);
+    console.log(`submitted ${recs} vocab entries`);
   }
 
   return (
@@ -135,14 +135,18 @@ function App() {
   };
 
   const pushVocabList = async () => {
+
+    let updated = 0;
     editedEntries.current.forEach((entry, key) => {
-      console.log(entry);
-      TABLE.where({ _key: key }).set(entry).one();
+      updated += TABLE.where({ _key: key }).set(entry).one();
     });
 
+    let deleted = 0;
     deletedEntries.current.forEach(key => {
-      TABLE.delete().where({_key: key}).one();
+      deleted += TABLE.delete().where({_key: key}).one();
     });
+
+    console.log(`updated ${updated} vocab entries, deleted ${deleted} vocab entries`)
 
     if (editedEntries.current.size !== 0 || deletedEntries.current.size !== 0) {
       fetchVocabList();
@@ -158,7 +162,6 @@ function App() {
     const key = event.target.getAttribute("_key");
     editedEntries.current.delete(key);
     deletedEntries.current.add(key);
-    console.log("queued entry delete", key);
   }
 
   const handleVocabUnfocus = (index) => {
@@ -171,13 +174,11 @@ function App() {
     // check if the vocab entry has been edited since the last push to the db
     if (JSON.stringify(vocabEntry) !== JSON.stringify(pristineVocabEntry)) {
       editedEntries.current.set(vocabEntry._key, vocabEntry);
-      console.log("an edit was made");
     } else {
       // if the entry was previously edited but is now pristine, remove it from the edited list
       if (editedEntries.current.has(vocabEntry._key)) {
         editedEntries.current.delete(vocabEntry._key);
       }
-      console.log("no edit");
     }
   }
 
@@ -190,7 +191,6 @@ function App() {
       pushVocabList();
       pristineVocabList.current = [];
       editedEntries.current.clear();
-      console.log(deletedEntries.current);
       deletedEntries.current.clear();
     }
 
@@ -204,15 +204,19 @@ function App() {
       return;
     }
 
+    console.log(`exiting edit mode`);
+    console.log(`\trestored ${deletedEntries.current.size} deleted entries`);
+    console.log(`\trestored ${editedEntries.current.size} edited entries`);
+
+    // restore the vocab list 
     const newVocabList = pristineVocabList.current.splice(0);
     setVocabList(newVocabList);
     pristineVocabList.current = [];
+
+    // clear deleted and edited entries 
     editedEntries.current.clear();
-    setEditMode(false);
-    console.log(`restored ${deletedEntries.current.size} entries`, deletedEntries.current);
-    console.log("edit canceled");
-    console.log("exiting edit mode");
     deletedEntries.current.clear();
+    setEditMode(false);
   }
 
   const handleCellEdit = (event, entryIndex) => {
