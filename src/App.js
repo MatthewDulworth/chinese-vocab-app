@@ -118,6 +118,9 @@ function AddVocabDialouge(props) {
   );
 }
 
+// ----------------------------------------------------------------------
+// App
+// ----------------------------------------------------------------------
 function App() {
   const [vocabList, setVocabList] = useState(new Map());
   const [inEditMode, setEditMode] = useState(false);
@@ -127,6 +130,9 @@ function App() {
   const { db } = useEasybase();
   const TABLE = db("VOCAB");
 
+  // ----------------------------------------
+  // Database 
+  // ----------------------------------------
   const fetchVocabList = async () => {
     const ebData = await TABLE.return().all();
 
@@ -159,6 +165,15 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    // initial db fetch
+    fetchVocabList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ----------------------------------------
+  // Event Handlers
+  // ----------------------------------------
   const handleDeleteEntryClick = (event) => {
     if (!inEditMode) {
       event.preventDefault();
@@ -240,11 +255,9 @@ function App() {
     setVocabList(newVocabList);
   }
 
-  useEffect(() => {
-    fetchVocabList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  // ----------------------------------------
+  // Render
+  // ----------------------------------------
   return (
     <div id="App">
       <MainMenu />
