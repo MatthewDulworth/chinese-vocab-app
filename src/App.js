@@ -34,13 +34,26 @@ function VocabEntry(props) {
     >
       {({ focusProps, isFocused }) => (
         <form className="VocabEntry" spellCheck="false">
-          <input {...focusProps} onChange={doCellChange} type="text" className="chinesesimplified" value={props.chinesesimplified} />
-          <input {...focusProps} onChange={doCellChange} type="text" className="chinesetraditional" value={props.chinesetraditional} />
-          <input {...focusProps} onChange={doCellChange} type="text" className="pinyin" value={props.pinyin} />
-          <input {...focusProps} onChange={doCellChange} type="text" className="english" value={props.english} spellCheck="true" />
-          <input {...focusProps} onChange={doCellChange} type="text" className="partofspeech" value={props.partofspeech} spellCheck="true" />
-          <input {...focusProps} onChange={doCellChange} type="checkbox" className="needspractice" checked={props.needspractice} />
-          <input {...focusProps} onChange={doCellChange} type="text" className="notes" value={props.notes ? props.notes : ""} />
+          <input className="chinesesimplified" value={props.chinesesimplified}
+            {...focusProps} onChange={doCellChange} disabled={props.disabled} type="text" />
+
+          <input className="chinesetraditional" value={props.chinesetraditional}
+            {...focusProps} onChange={doCellChange} disabled={props.disabled} type="text" />
+
+          <input className="pinyin" value={props.pinyin}
+            {...focusProps} onChange={doCellChange} disabled={props.disabled} type="text" />
+
+          <input className="english" value={props.english}
+            {...focusProps} onChange={doCellChange} disabled={props.disabled} type="text" spellCheck="true" />
+
+          <input className="partofspeech" value={props.partofspeech}
+            {...focusProps} onChange={doCellChange} disabled={props.disabled} type="text" spellCheck="true" />
+
+          <input className="needspractice" checked={props.needspractice}
+            {...focusProps} onChange={doCellChange} disabled={props.disabled} type="checkbox" />
+
+          <input className="notes" value={props.notes ? props.notes : ""}
+            {...focusProps} onChange={doCellChange} disabled={props.disabled} type="text" />
         </form>
       )}
     </FocusWithin>
@@ -49,15 +62,17 @@ function VocabEntry(props) {
 
 function VocabTable(props) {
   const tableBody = Array.from(props.vocabList).map(([key, vocabEntry]) => {
+    const disabled = props.disabledEntries.has(key);
     return (
       <Fragment key={key}>
         {React.createElement(VocabEntry, {
           ...vocabEntry,
           handleCellChange: props.handleCellChange,
           handleVocabUnfocus: props.handleVocabUnfocus,
+          disabled: disabled,
           _key: key
         })}
-        {props.inEditMode && <button onClick={props.handleDeleteEntryClick} _key={key}> Delete </button>}
+        {props.inEditMode && <button onClick={props.handleDeleteEntryClick} _key={key} disabled={disabled}> Delete </button>}
       </Fragment>
     );
   });
@@ -132,7 +147,7 @@ function AddVocabDialouge(props) {
 function App() {
   const [vocabList, setVocabList] = useState(new Map());
   const [inEditMode, setEditMode] = useState(false);
-  const deletedEntries = useRef(new Set());
+  const [deletedEntries, setDeletedEntries] = useState(new Set());
   const editedEntries = useRef(new Set());
   const pristineVocabList = useRef(new Map());
   const { db } = useEasybase();
@@ -162,13 +177,13 @@ function App() {
     });
 
     let deleted = 0;
-    deletedEntries.current.forEach(async (key) => {
+    deletedEntries.forEach(async (key) => {
       deleted += await TABLE.delete().where({ _key: key }).one();
     });
 
     console.log(`updated ${updated} vocab entries, deleted ${deleted} vocab entries`)
 
-    if (editedEntries.current.size !== 0 || deletedEntries.current.size !== 0) {
+    if (editedEntries.current.size !== 0 || deletedEntries.size !== 0) {
       fetchVocabList();
     }
   }
@@ -190,7 +205,7 @@ function App() {
 
     const key = event.target.getAttribute("_key");
     editedEntries.current.delete(key);
-    deletedEntries.current.add(key);
+    setDeletedEntries(new Set(deletedEntries).add(key));
   }
 
   const handleVocabUnfocus = (key) => {
@@ -218,7 +233,7 @@ function App() {
       pushVocabList();
       pristineVocabList.current.clear();
       editedEntries.current.clear();
-      deletedEntries.current.clear();
+      setDeletedEntries(new Set());
     }
 
     console.log(`${inEditMode ? "exiting edit mode" : "entering edit mode"}`);
@@ -232,7 +247,7 @@ function App() {
     }
 
     console.log(`exiting edit mode`);
-    console.log(`\trestored ${deletedEntries.current.size} deleted entries`);
+    console.log(`\trestored ${deletedEntries.size} deleted entries`);
     console.log(`\trestored ${editedEntries.current.size} edited entries`);
 
     // restore the vocab list 
@@ -242,7 +257,7 @@ function App() {
 
     // clear deleted and edited entries 
     editedEntries.current.clear();
-    deletedEntries.current.clear();
+    deletedEntries.clear();
     setEditMode(false);
   }
 
@@ -271,6 +286,7 @@ function App() {
       <MainMenu />
       <VocabTable
         vocabList={vocabList}
+        disabledEntries={deletedEntries}
         handleCellChange={handleCellEdit}
         handleVocabUnfocus={handleVocabUnfocus}
         handleDeleteEntryClick={handleDeleteEntryClick}
