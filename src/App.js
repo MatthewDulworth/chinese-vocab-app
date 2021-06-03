@@ -25,12 +25,12 @@ function VocabHeader(props) {
 function VocabEntry(props) {
 
   const doCellChange = (event) => {
-    props.handleCellChange(event, props.index);
+    props.handleCellChange(event, props._key);
   }
 
   return (
     <FocusWithin
-      onBlur={() => props.handleVocabUnfocus(props.index)}
+      onBlur={() => props.handleVocabUnfocus(props._key)}
     >
       {({ focusProps, isFocused }) => (
         <form className="VocabEntry" spellCheck="false">
@@ -48,17 +48,16 @@ function VocabEntry(props) {
 }
 
 function VocabTable(props) {
-
-  const tableBody = props.vocabList.map((vocabEntry, index) => {
+  const tableBody = Array.from(props.vocabList).map(([key, vocabEntry]) => {
     return (
-      <Fragment key={vocabEntry._key}>
+      <Fragment key={key}>
         {React.createElement(VocabEntry, {
           ...vocabEntry,
           handleCellChange: props.handleCellChange,
           handleVocabUnfocus: props.handleVocabUnfocus,
-          index: index,
+          _key: key
         })}
-        {props.inEditMode && <button onClick={props.handleDeleteEntryClick} entryindex={index} _key={vocabEntry._key}> Delete </button>}
+        {props.inEditMode && <button onClick={props.handleDeleteEntryClick} _key={key}> Delete </button>}
       </Fragment>
     );
   });
@@ -120,30 +119,37 @@ function AddVocabDialouge(props) {
 }
 
 function App() {
-  const [vocabList, setVocabList] = useState([]);
+  const [vocabList, setVocabList] = useState(new Map());
   const [inEditMode, setEditMode] = useState(false);
   const deletedEntries = useRef(new Set());
-  const editedEntries = useRef(new Map());
-  const pristineVocabList = useRef([]);
+  const editedEntries = useRef(new Set());
+  const pristineVocabList = useRef(new Map());
   const { db } = useEasybase();
   const TABLE = db("VOCAB");
 
   const fetchVocabList = async () => {
     const ebData = await TABLE.return().all();
-    setVocabList(ebData);
+
+    const vocab = new Map();
+    ebData.forEach((row) => {
+      vocab.set(row._key, row);
+    });
+
+    setVocabList(vocab);
     console.log("%cfetched vocab list", "color: yellow;");
   };
 
   const pushVocabList = async () => {
 
     let updated = 0;
-    editedEntries.current.forEach((entry, key) => {
-      updated += TABLE.where({ _key: key }).set(entry).one();
+    editedEntries.current.forEach(async (key) => {
+      const entry = vocabList.get(key);
+      updated += await TABLE.where({ _key: key }).set(entry).one();
     });
 
     let deleted = 0;
-    deletedEntries.current.forEach(key => {
-      deleted += TABLE.delete().where({_key: key}).one();
+    deletedEntries.current.forEach(async (key) => {
+      deleted += await TABLE.delete().where({ _key: key }).one();
     });
 
     console.log(`updated ${updated} vocab entries, deleted ${deleted} vocab entries`)
@@ -164,32 +170,30 @@ function App() {
     deletedEntries.current.add(key);
   }
 
-  const handleVocabUnfocus = (index) => {
+  const handleVocabUnfocus = (key) => {
     if (!inEditMode) {
       return;
     }
-    const vocabEntry = vocabList[index];
-    const pristineVocabEntry = pristineVocabList.current[index];
+    const vocabEntry = vocabList.get(key);
+    const pristineVocabEntry = pristineVocabList.current.get(key);
 
     // check if the vocab entry has been edited since the last push to the db
     if (JSON.stringify(vocabEntry) !== JSON.stringify(pristineVocabEntry)) {
-      editedEntries.current.set(vocabEntry._key, vocabEntry);
+      editedEntries.current.add(key);
     } else {
       // if the entry was previously edited but is now pristine, remove it from the edited list
-      if (editedEntries.current.has(vocabEntry._key)) {
-        editedEntries.current.delete(vocabEntry._key);
-      }
+      editedEntries.current.delete(key);
     }
   }
 
   const handleEditMode = () => {
     if (!inEditMode) {
       // entering edit mode, save a pristine copy of the vocabList
-      pristineVocabList.current = vocabList.map((entry) => ({ ...entry }));
+      pristineVocabList.current = cloneMap(vocabList);
     } else {
       // exiting edit mode, update the database
       pushVocabList();
-      pristineVocabList.current = [];
+      pristineVocabList.current.clear();
       editedEntries.current.clear();
       deletedEntries.current.clear();
     }
@@ -209,9 +213,9 @@ function App() {
     console.log(`\trestored ${editedEntries.current.size} edited entries`);
 
     // restore the vocab list 
-    const newVocabList = pristineVocabList.current.splice(0);
+    const newVocabList = cloneMap(pristineVocabList.current);
     setVocabList(newVocabList);
-    pristineVocabList.current = [];
+    pristineVocabList.current.clear();
 
     // clear deleted and edited entries 
     editedEntries.current.clear();
@@ -219,14 +223,14 @@ function App() {
     setEditMode(false);
   }
 
-  const handleCellEdit = (event, entryIndex) => {
+  const handleCellEdit = (event, key) => {
     if (!inEditMode) {
       event.preventDefault();
       return;
     }
 
-    const newVocabList = vocabList.splice(0);
-    const targetEntry = newVocabList[entryIndex];
+    const newVocabList = cloneMap(vocabList);
+    const targetEntry = newVocabList.get(key);
 
     if (event.target.type === "checkbox") {
       targetEntry[event.target.className] = event.target.checked;
@@ -257,6 +261,12 @@ function App() {
       <AddVocabDialouge fetchVocabList={fetchVocabList} />
     </div>
   );
+}
+
+const cloneMap = (map) => {
+  const clone = new Map();
+  map.forEach((entry, key) => clone.set(key, { ...entry }));
+  return clone;
 }
 
 export default App;
