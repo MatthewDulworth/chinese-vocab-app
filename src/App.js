@@ -1,8 +1,7 @@
 import './App.css';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, Fragment } from 'react';
 import { useEasybase } from 'easybase-react';
 import FocusWithin from 'react-focus-within'
-import { Fragment } from 'react';
 
 function MainMenu() {
   return <div className="MainMenu"></div>;
@@ -59,14 +58,14 @@ function VocabTable(props) {
           handleVocabUnfocus: props.handleVocabUnfocus,
           index: index,
         })}
-        { props.inEditMode && <button>Delete Entry</button>}
+        {props.inEditMode && <button onClick={props.handleDeleteEntryClick} entryindex={index} _key={vocabEntry._key}> Delete </button>}
       </Fragment>
     );
   });
 
   return (
     <section id="VocabTable" className={props.inEditMode ? "tableEditMode" : "tableNormalMode"}>
-      <VocabHeader inEditMode={props.inEditMode}/>
+      <VocabHeader inEditMode={props.inEditMode} />
       {tableBody}
     </section>
   );
@@ -123,6 +122,7 @@ function AddVocabDialouge(props) {
 function App() {
   const [vocabList, setVocabList] = useState([]);
   const [inEditMode, setEditMode] = useState(false);
+  const deletedEntries = useRef(new Set());
   const editedEntries = useRef(new Map());
   const pristineVocabList = useRef([]);
   const { db } = useEasybase();
@@ -140,9 +140,25 @@ function App() {
       TABLE.where({ _key: key }).set(entry).one();
     });
 
-    if (editedEntries.current.size !== 0) {
+    deletedEntries.current.forEach(key => {
+      TABLE.delete().where({_key: key}).one();
+    });
+
+    if (editedEntries.current.size !== 0 || deletedEntries.current.size !== 0) {
       fetchVocabList();
     }
+  }
+
+  const handleDeleteEntryClick = (event) => {
+    if (!inEditMode) {
+      event.preventDefault();
+      return;
+    }
+
+    const key = event.target.getAttribute("_key");
+    editedEntries.current.delete(key);
+    deletedEntries.current.add(key);
+    console.log("queued entry delete", key);
   }
 
   const handleVocabUnfocus = (index) => {
@@ -174,6 +190,8 @@ function App() {
       pushVocabList();
       pristineVocabList.current = [];
       editedEntries.current.clear();
+      console.log(deletedEntries.current);
+      deletedEntries.current.clear();
     }
 
     console.log(`${inEditMode ? "exiting edit mode" : "entering edit mode"}`);
@@ -191,8 +209,10 @@ function App() {
     pristineVocabList.current = [];
     editedEntries.current.clear();
     setEditMode(false);
+    console.log(`restored ${deletedEntries.current.size} entries`, deletedEntries.current);
     console.log("edit canceled");
     console.log("exiting edit mode");
+    deletedEntries.current.clear();
   }
 
   const handleCellEdit = (event, entryIndex) => {
@@ -224,6 +244,7 @@ function App() {
         vocabList={vocabList}
         handleCellChange={handleCellEdit}
         handleVocabUnfocus={handleVocabUnfocus}
+        handleDeleteEntryClick={handleDeleteEntryClick}
         inEditMode={inEditMode}
       />
       <button onClick={fetchVocabList}>Fetch Data</button>
