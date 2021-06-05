@@ -218,39 +218,8 @@ function App() {
   }, []);
 
   // ----------------------------------------
-  // Event Handlers
+  // Edit Mode Events
   // ----------------------------------------
-  const handleDeleteEntryClick = (event) => {
-    if (!inEditMode) {
-      event.preventDefault();
-      return;
-    }
-
-    const key = event.target.getAttribute("_key");
-    if (editedEntries.has(key)) {
-      setEditedEntries(new Set(editedEntries.delete(key)));
-    }
-    setDeletedEntries(new Set(deletedEntries).add(key));
-  }
-
-  const handleVocabUnfocus = (key) => {
-    if (!inEditMode) {
-      return;
-    }
-    const vocabEntry = vocabList.get(key);
-    const pristineVocabEntry = pristineVocabList.current.get(key);
-
-    // check if the vocab entry has been edited since the last push to the db
-    if (JSON.stringify(vocabEntry) !== JSON.stringify(pristineVocabEntry)) {
-      setEditedEntries(new Set(editedEntries.add(key)));
-    } else {
-      // if the entry was previously edited but is now pristine, remove it from the edited list
-      if (editedEntries.has(key)) {
-        setEditedEntries(new Set(editedEntries.delete(key)));
-      }
-    }
-  }
-
   const handleEnterEditMode = () => {
     if (inEditMode) {
       return;
@@ -262,7 +231,7 @@ function App() {
   }
 
   const handleSaveEdits = async () => {
-    if(!inEditMode) {
+    if (!inEditMode) {
       return;
     }
 
@@ -306,6 +275,40 @@ function App() {
     setEditMode(false);
   }
 
+  // ----------------------------------------
+  // VocabTable Edit Events
+  // ----------------------------------------
+  const handleDeleteEntryClick = (event) => {
+    if (!inEditMode) {
+      event.preventDefault();
+      return;
+    }
+
+    const key = event.target.getAttribute("_key");
+    if (editedEntries.has(key)) {
+      setEditedEntries(new Set(editedEntries.delete(key)));
+    }
+    setDeletedEntries(new Set(deletedEntries).add(key));
+  }
+
+  const handleVocabUnfocus = (key) => {
+    if (!inEditMode) {
+      return;
+    }
+    const vocabEntry = vocabList.get(key);
+    const pristineVocabEntry = pristineVocabList.current.get(key);
+
+    // check if the vocab entry has been edited since the last push to the db
+    if (JSON.stringify(vocabEntry) !== JSON.stringify(pristineVocabEntry)) {
+      setEditedEntries(new Set(editedEntries.add(key)));
+    } else {
+      // if the entry was previously edited but is now pristine, remove it from the edited list
+      if (editedEntries.has(key)) {
+        setEditedEntries(new Set(editedEntries.delete(key)));
+      }
+    }
+  }
+
   const handleCellEdit = (event, key) => {
     if (!inEditMode) {
       event.preventDefault();
@@ -323,6 +326,9 @@ function App() {
     setVocabList(newVocabList);
   }
 
+  // ----------------------------------------
+  // Search
+  // ----------------------------------------
   const handleSearch = (event, text) => {
     event.preventDefault();
     if (inEditMode) {
