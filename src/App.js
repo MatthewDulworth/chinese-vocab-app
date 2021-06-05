@@ -168,11 +168,19 @@ function AddVocabDialouge(props) {
 // App
 // ----------------------------------------------------------------------
 function App() {
+  // The vocab list that gets rendered to the screen and the user interacts with
   const [vocabList, setVocabList] = useState(new Map());
-  const [inEditMode, setEditMode] = useState(false);
+  // Saved state of the vocaab list before edit mode
+  const preEditVocabList = useRef(new Map());
+
+  // tracks which entries have been deleted or changed in edit mode
   const [deletedEntries, setDeletedEntries] = useState(new Set());
   const [editedEntries, setEditedEntries] = useState(new Set());
-  const pristineVocabList = useRef(new Map());
+
+  // tracks if user is in editMode
+  const [inEditMode, setEditMode] = useState(false);
+  
+  // datatbase access
   const { db } = useEasybase();
   const TABLE = db("VOCAB");
 
@@ -225,7 +233,7 @@ function App() {
       return;
     }
     // entering edit mode, save a pristine copy of the vocabList
-    pristineVocabList.current = cloneMap(vocabList);
+    preEditVocabList.current = cloneMap(vocabList);
     setEditMode(true);
     console.log("entering edit mode");
   }
@@ -244,7 +252,7 @@ function App() {
     await pushVocabList();
 
     // clear the edit trackers
-    pristineVocabList.current.clear();
+    preEditVocabList.current.clear();
     setEditedEntries(new Set());
     setDeletedEntries(new Set());
 
@@ -265,9 +273,9 @@ function App() {
     console.log(`\trestored ${editedEntries.size} edited entries`);
 
     // restore the vocab list 
-    const newVocabList = cloneMap(pristineVocabList.current);
+    const newVocabList = cloneMap(preEditVocabList.current);
     setVocabList(newVocabList);
-    pristineVocabList.current.clear();
+    preEditVocabList.current.clear();
 
     // clear deleted and edited entries 
     setEditedEntries(new Set());
@@ -296,7 +304,7 @@ function App() {
       return;
     }
     const vocabEntry = vocabList.get(key);
-    const pristineVocabEntry = pristineVocabList.current.get(key);
+    const pristineVocabEntry = preEditVocabList.current.get(key);
 
     // check if the vocab entry has been edited since the last push to the db
     if (JSON.stringify(vocabEntry) !== JSON.stringify(pristineVocabEntry)) {
