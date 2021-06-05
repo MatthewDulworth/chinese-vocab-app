@@ -11,7 +11,7 @@ function SearchBar(props) {
   const [searchText, setSearchText] = useState("");
 
   const handleSearchTextChange = (event) => {
-    if(props.inEditMode) {
+    if (props.inEditMode) {
       event.preventDefault();
       return;
     }
@@ -23,8 +23,8 @@ function SearchBar(props) {
     <div id="SearchBar" >
       Search
       <form>
-        <input type="text" value={searchText} onChange={handleSearchTextChange} disabled={props.inEditMode}/>
-        <button disabled={props.inEditMode}>go!</button>
+        <input type="text" value={searchText} onChange={handleSearchTextChange} disabled={props.inEditMode} />
+        <button onClick={(e) => props.handleSearch(e, searchText)} disabled={props.inEditMode}>go!</button>
       </form>
     </div>
   );
@@ -301,12 +301,24 @@ function App() {
     setVocabList(newVocabList);
   }
 
+  const handleSearch = (event, text) => {
+    event.preventDefault();
+    if (inEditMode) {
+      return;
+    }
+
+    console.log("searching for: ", text);
+  }
+
   // ----------------------------------------
   // Render
   // ----------------------------------------
   return (
     <div id="App">
-      <SearchBar inEditMode={inEditMode} />
+      <SearchBar
+        inEditMode={inEditMode}
+        handleSearch={handleSearch}
+      />
       <MainMenu />
       <VocabTable
         vocabList={vocabList}
