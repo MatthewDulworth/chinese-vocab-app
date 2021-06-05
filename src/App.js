@@ -7,6 +7,29 @@ function MainMenu() {
   return <div className="MainMenu"></div>;
 }
 
+function SearchBar(props) {
+  const [searchText, setSearchText] = useState("");
+
+  const handleSearchTextChange = (event) => {
+    if(props.inEditMode) {
+      event.preventDefault();
+      return;
+    }
+
+    setSearchText(event.target.value);
+  }
+
+  return (
+    <div id="SearchBar" >
+      Search
+      <form>
+        <input type="text" value={searchText} onChange={handleSearchTextChange} disabled={props.inEditMode}/>
+        <button disabled={props.inEditMode}>go!</button>
+      </form>
+    </div>
+  );
+}
+
 function VocabHeader(props) {
   return (
     <header id="VocabHeader">
@@ -283,6 +306,7 @@ function App() {
   // ----------------------------------------
   return (
     <div id="App">
+      <SearchBar inEditMode={inEditMode} />
       <MainMenu />
       <VocabTable
         vocabList={vocabList}
