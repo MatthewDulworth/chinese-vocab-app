@@ -194,15 +194,15 @@ function App() {
   const pushVocabList = async () => {
 
     let updated = 0;
-    editedEntries.forEach(async (key) => {
+    await Promise.all(Array.from(editedEntries).map(async (key) => {
       const entry = vocabList.get(key);
       updated += await TABLE.where({ _key: key }).set(entry).one();
-    });
+    }));
 
     let deleted = 0;
-    deletedEntries.forEach(async (key) => {
+    await Promise.all(Array.from(deletedEntries).map(async (key) => {
       deleted += await TABLE.delete().where({ _key: key }).one();
-    });
+    }));
 
     console.log(`updated ${updated} vocab entries, deleted ${deleted} vocab entries`)
 
@@ -227,7 +227,7 @@ function App() {
     }
 
     const key = event.target.getAttribute("_key");
-    if(editedEntries.has(key)) {
+    if (editedEntries.has(key)) {
       setEditedEntries(new Set(editedEntries.delete(key)));
     }
     setDeletedEntries(new Set(deletedEntries).add(key));
@@ -245,26 +245,44 @@ function App() {
       setEditedEntries(new Set(editedEntries.add(key)));
     } else {
       // if the entry was previously edited but is now pristine, remove it from the edited list
-      if(editedEntries.has(key)) {
+      if (editedEntries.has(key)) {
         setEditedEntries(new Set(editedEntries.delete(key)));
       }
     }
   }
 
-  const handleEditMode = () => {
-    if (!inEditMode) {
-      // entering edit mode, save a pristine copy of the vocabList
-      pristineVocabList.current = cloneMap(vocabList);
-    } else {
-      // exiting edit mode, update the database
-      pushVocabList();
-      pristineVocabList.current.clear();
-      setEditedEntries(new Set());
-      setDeletedEntries(new Set());
+  const handleEnterEditMode = () => {
+    if (inEditMode) {
+      return;
+    }
+    // entering edit mode, save a pristine copy of the vocabList
+    pristineVocabList.current = cloneMap(vocabList);
+    setEditMode(true);
+    console.log("entering edit mode");
+  }
+
+  const handleSaveEdits = async () => {
+    if(!inEditMode) {
+      return;
     }
 
-    console.log(`${inEditMode ? "exiting edit mode" : "entering edit mode"}`);
-    setEditMode(!inEditMode);
+    // stupid dumb hack to block user input while db loads 
+    const screenBlock = document.createElement("div");
+    screenBlock.className += "overlay";
+    document.body.appendChild(screenBlock);
+
+    // update the database
+    await pushVocabList();
+
+    // clear the edit trackers
+    pristineVocabList.current.clear();
+    setEditedEntries(new Set());
+    setDeletedEntries(new Set());
+
+    // exit edit mode and remove the input blocker
+    setEditMode(false);
+    document.body.removeChild(screenBlock);
+    console.log("exiting edit mode");
   }
 
   const handleCancelEdit = () => {
@@ -333,7 +351,7 @@ function App() {
         inEditMode={inEditMode}
       />
       <button onClick={fetchVocabList}>Fetch Data</button>
-      <button onClick={handleEditMode}>{inEditMode ? "Save" : "Edit"}</button>
+      <button onClick={inEditMode ? handleSaveEdits : handleEnterEditMode}>{inEditMode ? "Save" : "Edit"}</button>
       {inEditMode && <button onClick={handleCancelEdit}>Cancel</button>}
       <AddVocabDialouge fetchVocabList={fetchVocabList} />
     </div>
