@@ -171,7 +171,7 @@ function App() {
   const [vocabList, setVocabList] = useState(new Map());
   const [inEditMode, setEditMode] = useState(false);
   const [deletedEntries, setDeletedEntries] = useState(new Set());
-  const editedEntries = useRef(new Set());
+  const [editedEntries, setEditedEntries] = useState(new Set());
   const pristineVocabList = useRef(new Map());
   const { db } = useEasybase();
   const TABLE = db("VOCAB");
@@ -194,7 +194,7 @@ function App() {
   const pushVocabList = async () => {
 
     let updated = 0;
-    editedEntries.current.forEach(async (key) => {
+    editedEntries.forEach(async (key) => {
       const entry = vocabList.get(key);
       updated += await TABLE.where({ _key: key }).set(entry).one();
     });
@@ -206,7 +206,7 @@ function App() {
 
     console.log(`updated ${updated} vocab entries, deleted ${deleted} vocab entries`)
 
-    if (editedEntries.current.size !== 0 || deletedEntries.size !== 0) {
+    if (editedEntries.size !== 0 || deletedEntries.size !== 0) {
       fetchVocabList();
     }
   }
@@ -227,7 +227,9 @@ function App() {
     }
 
     const key = event.target.getAttribute("_key");
-    editedEntries.current.delete(key);
+    if(editedEntries.has(key)) {
+      setEditedEntries(new Set(editedEntries.delete(key)));
+    }
     setDeletedEntries(new Set(deletedEntries).add(key));
   }
 
@@ -240,10 +242,12 @@ function App() {
 
     // check if the vocab entry has been edited since the last push to the db
     if (JSON.stringify(vocabEntry) !== JSON.stringify(pristineVocabEntry)) {
-      editedEntries.current.add(key);
+      setEditedEntries(new Set(editedEntries.add(key)));
     } else {
       // if the entry was previously edited but is now pristine, remove it from the edited list
-      editedEntries.current.delete(key);
+      if(editedEntries.has(key)) {
+        setEditedEntries(new Set(editedEntries.delete(key)));
+      }
     }
   }
 
@@ -255,7 +259,7 @@ function App() {
       // exiting edit mode, update the database
       pushVocabList();
       pristineVocabList.current.clear();
-      editedEntries.current.clear();
+      setEditedEntries(new Set());
       setDeletedEntries(new Set());
     }
 
@@ -271,7 +275,7 @@ function App() {
 
     console.log(`exiting edit mode`);
     console.log(`\trestored ${deletedEntries.size} deleted entries`);
-    console.log(`\trestored ${editedEntries.current.size} edited entries`);
+    console.log(`\trestored ${editedEntries.size} edited entries`);
 
     // restore the vocab list 
     const newVocabList = cloneMap(pristineVocabList.current);
@@ -279,8 +283,8 @@ function App() {
     pristineVocabList.current.clear();
 
     // clear deleted and edited entries 
-    editedEntries.current.clear();
-    deletedEntries.clear();
+    setEditedEntries(new Set());
+    setDeletedEntries(new Set());
     setEditMode(false);
   }
 
