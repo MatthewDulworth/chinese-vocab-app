@@ -3,28 +3,47 @@ import React, { useEffect, useRef, useState, Fragment } from 'react';
 import { useEasybase } from 'easybase-react';
 import FocusWithin from 'react-focus-within';
 
+const partsOfSpeech = [
+  "adjective",
+  "adverb",
+  "greeting",
+  "noun",
+  "pronoun",
+  "question particle",
+  "question pronoun",
+  "time word",
+  "verb",
+];
+
 function MainMenu() {
   return <div className="MainMenu"></div>;
 }
 
 function SearchBar(props) {
   const [searchText, setSearchText] = useState("");
-
-  const handleSearchTextChange = (event) => {
-    if (props.inEditMode) {
-      event.preventDefault();
-      return;
-    }
-
-    setSearchText(event.target.value);
-  }
+  const [searchLang, setSearchLang] = useState("english");
+  const [searchPOS, setSearchPos] = useState("any");
 
   return (
     <div id="SearchBar" >
       Search
       <form>
-        <input type="text" value={searchText} onChange={handleSearchTextChange} disabled={props.inEditMode} />
-        <button onClick={(e) => props.handleSearch(e, searchText)} disabled={props.inEditMode}>go!</button>
+
+        Search Language:
+        <select value={searchLang} onChange={(e) => setSearchLang(e.target.value)}>
+          <option value="chinese">中文</option>
+          <option value="pinyin">拼音</option>
+          <option value="english">English</option>
+        </select>
+
+        Part of Speech:
+        <select value={searchPOS} onChange={(e) => setSearchPos(e.target.value)}>
+          <option value="any">Any</option>
+          {partsOfSpeech.map((pos, i) => <option value={pos} key={i}>{toTileCase(pos)}</option>)}
+        </select>
+
+        <input type="text" value={searchText} onChange={(e) => setSearchText(e.target.value)} disabled={props.inEditMode} />
+        <button onClick={(e) => props.handleSearch(e, searchText, searchLang, searchPOS)} disabled={props.inEditMode}>Go!</button>
       </form>
     </div>
   );
@@ -170,8 +189,10 @@ function AddVocabDialouge(props) {
 function App() {
   // The vocab list that gets rendered to the screen and the user interacts with
   const [vocabList, setVocabList] = useState(new Map());
-  // Saved state of the vocaab list before edit mode
+  // Saved state of the vocab list before edit mode
   const preEditVocabList = useRef(new Map());
+  // Copy of database to perform seraches on
+  const fullVocabList = useRef(new Map());
 
   // tracks which entries have been deleted or changed in edit mode
   const [deletedEntries, setDeletedEntries] = useState(new Set());
@@ -179,7 +200,7 @@ function App() {
 
   // tracks if user is in editMode
   const [inEditMode, setEditMode] = useState(false);
-  
+
   // datatbase access
   const { db } = useEasybase();
   const TABLE = db("VOCAB");
@@ -188,13 +209,14 @@ function App() {
   // Database 
   // ----------------------------------------
   const fetchVocabList = async () => {
-    const ebData = await TABLE.return().all();
+    const ebData = await TABLE.return().orderBy({ by: "pinyin", sort: "asc" }).all();
 
     const vocab = new Map();
     ebData.forEach((row) => {
       vocab.set(row._key, row);
     });
 
+    fullVocabList.current = vocab;
     setVocabList(vocab);
     console.log("%cfetched vocab list", "color: yellow;");
   };
@@ -215,7 +237,7 @@ function App() {
     console.log(`updated ${updated} vocab entries, deleted ${deleted} vocab entries`)
 
     if (editedEntries.size !== 0 || deletedEntries.size !== 0) {
-      fetchVocabList();
+      await fetchVocabList();
     }
   }
 
@@ -376,6 +398,19 @@ const cloneMap = (map) => {
   const clone = new Map();
   map.forEach((entry, key) => clone.set(key, { ...entry }));
   return clone;
+}
+
+const toTileCase = (str) => str.toLowerCase()
+  .split(' ')
+  .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+  .join(' ');
+
+const makeEnum = (arr) => {
+  let obj = {};
+  for (const val of arr) {
+    obj[val] = val;
+  }
+  return Object.freeze(obj);
 }
 
 export default App;
