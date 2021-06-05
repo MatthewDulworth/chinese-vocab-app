@@ -234,11 +234,13 @@ function App() {
       deleted += await TABLE.delete().where({ _key: key }).one();
     }));
 
-    console.log(`updated ${updated} vocab entries, deleted ${deleted} vocab entries`)
-
     if (editedEntries.size !== 0 || deletedEntries.size !== 0) {
       await fetchVocabList();
     }
+
+    console.log("exiting edit mode:")
+    console.log(`\tupdated ${updated} vocab entries`);
+    console.log(`\tdeleted ${deleted} vocab entries`)
   }
 
   useEffect(() => {
@@ -281,7 +283,6 @@ function App() {
     // exit edit mode and remove the input blocker
     setEditMode(false);
     document.body.removeChild(screenBlock);
-    console.log("exiting edit mode");
   }
 
   const handleCancelEdit = () => {
@@ -290,7 +291,7 @@ function App() {
       return;
     }
 
-    console.log(`exiting edit mode`);
+    console.log(`exiting edit mode:`);
     console.log(`\trestored ${deletedEntries.size} deleted entries`);
     console.log(`\trestored ${editedEntries.size} edited entries`);
 
