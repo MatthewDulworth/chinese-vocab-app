@@ -9,9 +9,9 @@ const partsOfSpeech = [
   "greeting",
   "noun",
   "pronoun",
-  "question particle",
-  "question pronoun",
-  "time word",
+  "question-particle",
+  "question-pronoun",
+  "time-word",
   "verb",
 ];
 
@@ -23,6 +23,7 @@ function SearchBar(props) {
   const [searchText, setSearchText] = useState("");
   const [searchLang, setSearchLang] = useState("english");
   const [searchPOS, setSearchPos] = useState("any");
+  const [fluencyLevel, setFluencyLevel] = useState("any");
 
   return (
     <div id="SearchBar" >
@@ -31,7 +32,8 @@ function SearchBar(props) {
 
         Search Language:
         <select value={searchLang} onChange={(e) => setSearchLang(e.target.value)}>
-          <option value="chinese">中文</option>
+          <option value="chinesesimplified">中文 (Simplified)</option>
+          <option value="chinesetraditional">中文 (Traditional)</option>
           <option value="pinyin">拼音</option>
           <option value="english">English</option>
         </select>
@@ -42,8 +44,19 @@ function SearchBar(props) {
           {partsOfSpeech.map((pos, i) => <option value={pos} key={i}>{toTileCase(pos)}</option>)}
         </select>
 
+        Fluency Level:
+        <select value={fluencyLevel} onChange={(e) => setFluencyLevel(e.target.value)}>
+          <option value="any">Any</option>
+          <option value="needs practice">Needs Practice</option>
+          <option value="fluent">Fluent</option>
+        </select>
+
         <input type="text" value={searchText} onChange={(e) => setSearchText(e.target.value)} disabled={props.inEditMode} />
-        <button onClick={(e) => props.handleSearch(e, searchText, searchLang, searchPOS)} disabled={props.inEditMode}>Go!</button>
+
+        <button
+          onClick={(e) => props.handleSearch(e, searchText, searchLang, searchPOS, fluencyLevel)}
+          disabled={props.inEditMode}
+        >Go!</button>
       </form>
     </div>
   );
@@ -360,13 +373,25 @@ function App() {
   // ----------------------------------------
   // Search
   // ----------------------------------------
-  const handleSearch = (event, text) => {
+  const handleSearch = (event, text, language, partOfSpeech, fluencyLevel) => {
     event.preventDefault();
     if (inEditMode) {
-      return;
-    }
+      return
+    };
 
-    console.log("searching for: ", text);
+    const needsPractice = (fluencyLevel !== "fluent") ? true : false;
+    const result = new Map();
+    fullVocabList.current.forEach((entry, key) => {
+      if (
+        (fluencyLevel === "any" || entry.needspractice === needsPractice)
+        && (partOfSpeech === "any" || entry.partofspeech.match(new RegExp("\\b" + partOfSpeech + "(\\b|,)")))
+        && entry[language].includes(text)
+      ) {
+        result.set(key, entry);
+      }
+    });
+
+    console.log(Array.from(result.entries()));
   }
 
   // ----------------------------------------
@@ -406,12 +431,12 @@ const toTileCase = (str) => str.toLowerCase()
   .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
   .join(' ');
 
-const makeEnum = (arr) => {
-  let obj = {};
-  for (const val of arr) {
-    obj[val] = val;
-  }
-  return Object.freeze(obj);
-}
+// const makeEnum = (arr) => {
+//   let obj = {};
+//   for (const val of arr) {
+//     obj[val] = val;
+//   }
+//   return Object.freeze(obj);
+// }
 
 export default App;
