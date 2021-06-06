@@ -379,12 +379,15 @@ function App() {
       return
     };
 
+    const anyFluency = fluencyLevel === "any";
+    const anyPOS = partOfSpeech === "any";
     const needsPractice = (fluencyLevel !== "fluent") ? true : false;
+    
     const result = new Map();
     fullVocabList.current.forEach((entry, key) => {
       if (
-        (fluencyLevel === "any" || entry.needspractice === needsPractice)
-        && (partOfSpeech === "any" || entry.partofspeech.match(new RegExp("\\b" + partOfSpeech + "(\\b|,)")))
+        (anyFluency || entry.needspractice === needsPractice)
+        && (anyPOS || entry.partofspeech.match(new RegExp("\\b" + partOfSpeech + "(\\b|,)")))
         && entry[language].includes(text)
       ) {
         result.set(key, entry);
