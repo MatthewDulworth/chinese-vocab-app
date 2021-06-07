@@ -11,17 +11,10 @@
   min-width: 100%;
   border-collapse: collapse;
   padding: 20px;
-}
-
-.tableNormalMode {
-  grid-template-columns: repeat(7, auto);
-}
-
-.tableEditMode {
   grid-template-columns: repeat(8, auto);
 }
 
-/* remove grid */
+/* remove row containers from grid */
 
 #VocabHeader, .VocabEntry {
   display: contents;
@@ -39,6 +32,8 @@
 #VocabHeader>*, #VocabEntry>* {
   padding-top: 10px;
 }
+
+/* Add Vocab Dialouge */
 
 #AddVocabDialouge {
   display: flex;
@@ -64,15 +59,4 @@
 
 #AddVocabDialouge button {
   grid-column-end: span 2;
-}
-
-.overlay {
-  background-color:#EFEFEF;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  top: 0px;
-  left: 0px;
-  opacity: .5; 
 }
