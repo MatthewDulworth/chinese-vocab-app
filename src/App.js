@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useEffect, useRef, useState, Fragment } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import FocusWithin from 'react-focus-within';
 
 import firebase from "firebase/app";
@@ -83,7 +83,7 @@ function VocabEntry({
   _key,
   handleCellChange,
   handleEntryUnfocus,
-  handleDeleteEntry,
+  handleEntryDelete,
 }) {
 
   const handleChange = (e) => { handleCellChange(e, _key) };
@@ -98,18 +98,24 @@ function VocabEntry({
           <input type="text" onChange={handleChange} {...focusProps} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
           <input type="text" onChange={handleChange} {...focusProps} name="fluency" checked={fluency} />
           <input type="text" onChange={handleChange} {...focusProps} name="notes" value={notes} />
-          <button onClick={(e) => handleDeleteEntry(e, _key)}>Delete Entry</button>
+          <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
         </form>
       )}
     </FocusWithin>
   );
 }
 
-function VocabTable({ vocabList }) {
+function VocabTable({ vocabList, handleCellChange, handleEntryUnfocus, handleEntryDelete }) {
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
     return (
       <Fragment key={key}>
-        <VocabEntry {...vocabEntry} _key={key} />
+        <VocabEntry
+          {...vocabEntry}
+          _key={key}
+          handleCellChange={handleCellChange}
+          handleEntryUnfocus={handleEntryUnfocus}
+          handleEntryDelete={handleEntryDelete}
+        />
       </Fragment>
     );
   });
@@ -199,12 +205,34 @@ function App() {
   }, []);
 
   // ----------------------------------------
+  // Events
+  // ----------------------------------------
+  const handleCellChange = (e, key) => {
+    e.preventDefault();
+    console.log("implement change", key, e.target.name);
+  }
+
+  const handleEntryUnfocus = (e, key) => {
+    console.log("implement unfocus", key, e.target.name);
+  }
+
+  const handleEntryDelete = (e, key) => {
+    e.preventDefault();
+    console.log("implement delete", key, e.target.name)
+  }
+
+  // ----------------------------------------
   // Render
   // ----------------------------------------
   return (
     <div id="App">
       <SearchBar />
-      <VocabTable vocabList={vocabList} />
+      <VocabTable
+        vocabList={vocabList}
+        handleCellChange={handleCellChange}
+        handleEntryUnfocus={handleEntryUnfocus}
+        handleEntryDelete={handleEntryDelete}
+      />
       <AddVocabDialouge />
     </div>
   );
