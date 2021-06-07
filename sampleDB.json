@@ -1,0 +1,35 @@
+{
+  "vocab": {
+    "one": {
+      "simplified": "我",
+      "traditional": "我",
+      "pinyin": "wǒ",
+      "english": {
+        "0": "I",
+        "1": "me"
+      },
+      "partsOfSpeech": {
+        "0": "pronoun"
+      },
+      "fluency": "fluent",
+      "notes": ""
+    }
+  },
+
+  "validPOS": {
+    "verb": 0,
+    "noun": 1,
+    "adverb": 2,
+    "pronoun": 3,
+    "greeting": 4,
+    "adjective": 5,
+    "time_word": 6,
+    "question_pronoun": 7,
+    "question_particle": 8
+  },
+
+  "validFluency": {
+    "fluent": 0,
+    "notFluent": 1
+  }
+}

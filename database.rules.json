@@ -1,0 +1,48 @@
+{
+  "rules": {
+    "vocab": {
+      ".read": true,
+      ".write": true,
+      
+      "$entry": {
+        ".validate": "newData.hasChildren(['simplified', 'traditional', 'pinyin', 'english', 'partsOfSpeech', 'fluency', 'notes'])",
+        "simplified": {
+          ".validate": "newData.isString()"
+        },
+        "traditional": {
+          ".validate": "newData.isString()"
+        },
+        "pinyin": {
+          ".validate": "newData.isString()"
+        },
+        "english": {
+          "word": {
+            ".validate": "newData.isString()"
+          }
+        },
+        "partsOfSpeech": {
+          "$pos": {
+            ".validate": "root.child('validPOS/' + newData.val()).exists()"
+          }
+        },
+        "fluency": {
+          ".validate": "root.child('validFluency/' + newData.val()).exists()"
+        },
+        "notes": {
+          ".validate": "newData.isString()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "validPOS": {
+      ".read": true,
+      ".write": false
+    },
+    "validFuency": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}
