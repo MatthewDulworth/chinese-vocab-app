@@ -17,19 +17,19 @@
   },
 
   "validPOS": {
-    "verb": 0,
-    "noun": 1,
-    "adverb": 2,
-    "pronoun": 3,
-    "greeting": 4,
-    "adjective": 5,
-    "time_word": 6,
-    "question_pronoun": 7,
-    "question_particle": 8
+    "verb": true,
+    "noun": true,
+    "adverb": true,
+    "pronoun": true,
+    "greeting": true,
+    "adjective": true,
+    "time_word": true,
+    "question_pronoun": true,
+    "question_particle": true
   },
 
-  "validFluency": {
-    "fluent": 0,
-    "notFluent": 1
+  "validFluencies": {
+    "fluent": true,
+    "notFluent": true
   }
 }
