@@ -201,27 +201,29 @@ function AddVocabDialouge() {
 // App
 // ----------------------------------------------------------------------
 function App() {
-  // The vocab list that gets rendered to the screen and the user interacts with
-  const [renderedVocab, setRenderedVocab] = useState(new Map());
-  const [fullVocabMap, setVocabFullDB] = useState(new Map());
-  const isInitialMount = useRef(true);
-  const validFluencies = useFetchSet("/validFluencies");
-  const validPOS = useFetchSet("/validPOS");
+  const [renderedVocab, setRenderedVocab] = useState(new Map());  // vocab rendered to screen, modified subset of fullVocabMap
+  const fullVocabMap = useRef(new Map());                         // identical to db vocab
+  const isInitialMount = useRef(true);                            // tracks the first db mount
+  const validFluencies = useFetchSet("/validFluencies");          // possible fluencies
+  const validPOS = useFetchSet("/validPOS");                      // possible parts of speech
 
   // ----------------------------------------
   // Database 
   // ----------------------------------------
   useEffect(() => {
+    // fetches vocab from the database everytime the database updates
     const listener = vocabDatabase.on('value', snapshot => {
+
+      // fetch vocab entries from db
       const vocabEntries = new Map();
       snapshot.forEach(entrySnapshot => {
         vocabEntries.set(entrySnapshot.key, entrySnapshot.val());
       });
-      setVocabFullDB(vocabEntries);
+      fullVocabMap.current = vocabEntries;
 
       if (isInitialMount.current) {
+        setRenderedVocab(cloneVocabMap(vocabEntries));
         isInitialMount.current = false;
-        setRenderedVocab(vocabEntries);
       }
     });
     return () => vocabDatabase.off('value', listener);
@@ -273,6 +275,10 @@ function App() {
     </div>
   );
 }
+
+// ----------------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------------
 
 // https://stackoverflow.com/a/39718708/9396808
 const camelToTitle = (camelCase) => camelCase
