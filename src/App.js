@@ -90,12 +90,7 @@ function VocabEntry({
 }) {
 
   const handleChange = (e) => { handleCellChange(e, _key) };
-
-
-  const fluencyOptions = () => {
-
-  }
-
+  const fluencyOptions = Array.from(validFluencies).map(val => <option key={val} value={val}>{camelToTitle(val)}</option>);
 
   return (
     <FocusWithin onBlur={(e) => handleEntryUnfocus(e, _key)}>
@@ -106,13 +101,7 @@ function VocabEntry({
           <input type="text" onChange={handleChange} {...focusProps} name="pinyin" value={pinyin} />
           <input type="text" onChange={handleChange} {...focusProps} name="english" value={english} spellCheck="true" />
           <input type="text" onChange={handleChange} {...focusProps} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
-          <input type="text" onChange={handleChange} {...focusProps} name="fluency" value={fluency} />
-
-          <select>
-            { }
-          </select>
-
-
+          <select onChange={handleChange} {...focusProps} name="fluency" value={fluency}>{fluencyOptions}</select>
           <input type="text" onChange={handleChange} {...focusProps} name="notes" value={notes} />
           <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
         </form>
@@ -285,6 +274,12 @@ function App() {
   );
 }
 
+// https://stackoverflow.com/a/39718708/9396808
+const camelToTitle = (camelCase) => camelCase
+  .replace(/([A-Z])/g, (match) => ` ${match}`)
+  .replace(/^./, (match) => match.toUpperCase())
+  .trim();
+
 const useFetchSet = (refStr) => {
   const [state, setState] = useState(null);
   const ref = DATABASE.ref(refStr);
@@ -323,10 +318,5 @@ const cloneVocabMap = (map) => {
   });
   return clone;
 }
-
-// const toTileCase = (str) => str.toLowerCase()
-//   .split(' ')
-//   .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-//   .join(' ');
 
 export default App;
