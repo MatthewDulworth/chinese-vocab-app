@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useEffect, useState, Fragment } from 'react';
+import React, { useEffect, useRef, useState, Fragment } from 'react';
 import FocusWithin from 'react-focus-within';
 
 import firebase from "firebase/app";
@@ -15,7 +15,8 @@ var firebaseConfig = {
   appId: "1:194089023131:web:5d5f74308d24971c9bf83e"
 };
 !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app()
-const vocabDatabase = firebase.database().ref("/vocab");
+const DATABASE = firebase.database();
+const vocabDatabase = DATABASE.ref("/vocab");
 
 function SearchBar() {
   const [searchText, setSearchText] = useState("");
@@ -84,9 +85,18 @@ function VocabEntry({
   handleCellChange,
   handleEntryUnfocus,
   handleEntryDelete,
+  validFluencies,
+  validPOS,
 }) {
 
   const handleChange = (e) => { handleCellChange(e, _key) };
+
+
+  const fluencyOptions = () => {
+
+  }
+
+
   return (
     <FocusWithin onBlur={(e) => handleEntryUnfocus(e, _key)}>
       {({ focusProps }) => (
@@ -96,7 +106,13 @@ function VocabEntry({
           <input type="text" onChange={handleChange} {...focusProps} name="pinyin" value={pinyin} />
           <input type="text" onChange={handleChange} {...focusProps} name="english" value={english} spellCheck="true" />
           <input type="text" onChange={handleChange} {...focusProps} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
-          <input type="text" onChange={handleChange} {...focusProps} name="fluency" checked={fluency} />
+          <input type="text" onChange={handleChange} {...focusProps} name="fluency" value={fluency} />
+
+          <select>
+            { }
+          </select>
+
+
           <input type="text" onChange={handleChange} {...focusProps} name="notes" value={notes} />
           <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
         </form>
@@ -105,7 +121,14 @@ function VocabEntry({
   );
 }
 
-function VocabTable({ vocabList, handleCellChange, handleEntryUnfocus, handleEntryDelete }) {
+function VocabTable({
+  vocabList,
+  handleCellChange,
+  handleEntryUnfocus,
+  handleEntryDelete,
+  validFluencies,
+  validPOS
+}) {
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
     return (
       <Fragment key={key}>
@@ -115,6 +138,8 @@ function VocabTable({ vocabList, handleCellChange, handleEntryUnfocus, handleEnt
           handleCellChange={handleCellChange}
           handleEntryUnfocus={handleEntryUnfocus}
           handleEntryDelete={handleEntryDelete}
+          validFluencies={validFluencies}
+          validPOS={validPOS}
         />
       </Fragment>
     );
@@ -188,7 +213,11 @@ function AddVocabDialouge() {
 // ----------------------------------------------------------------------
 function App() {
   // The vocab list that gets rendered to the screen and the user interacts with
-  const [vocabList, setVocabList] = useState(new Map());
+  const [renderedVocab, setRenderedVocab] = useState(new Map());
+  const [fullVocabMap, setVocabFullDB] = useState(new Map());
+  const isInitialMount = useRef(true);
+  const validFluencies = useFetchSet("/validFluencies");
+  const validPOS = useFetchSet("/validPOS");
 
   // ----------------------------------------
   // Database 
@@ -199,7 +228,12 @@ function App() {
       snapshot.forEach(entrySnapshot => {
         vocabEntries.set(entrySnapshot.key, entrySnapshot.val());
       });
-      setVocabList(vocabEntries);
+      setVocabFullDB(vocabEntries);
+
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        setRenderedVocab(vocabEntries);
+      }
     });
     return () => vocabDatabase.off('value', listener);
   }, []);
@@ -209,16 +243,28 @@ function App() {
   // ----------------------------------------
   const handleCellChange = (e, key) => {
     e.preventDefault();
-    console.log("implement change", key, e.target.name);
+
+    const newRenderVocab = new Map(renderedVocab);
+    const updatedEntry = newRenderVocab.get(key);
+    const property = e.target.name;
+
+    if (Array.isArray(updatedEntry[property])) {
+      console.log("nerd");
+      console.log(validFluencies);
+      console.log(validPOS);
+    } else {
+      updatedEntry[property] = e.target.value;
+      setRenderedVocab(newRenderVocab);
+    }
   }
 
   const handleEntryUnfocus = (e, key) => {
-    console.log("implement unfocus", key, e.target.name);
+    console.log("implement unfocus", key);
   }
 
   const handleEntryDelete = (e, key) => {
     e.preventDefault();
-    console.log("implement delete", key, e.target.name)
+    console.log("implement delete", key);
   }
 
   // ----------------------------------------
@@ -228,21 +274,56 @@ function App() {
     <div id="App">
       <SearchBar />
       <VocabTable
-        vocabList={vocabList}
+        vocabList={renderedVocab}
         handleCellChange={handleCellChange}
         handleEntryUnfocus={handleEntryUnfocus}
         handleEntryDelete={handleEntryDelete}
+        validFluencies={validFluencies}
+        validPOS={validPOS}
       />
       <AddVocabDialouge />
     </div>
   );
 }
 
-// const cloneMap = (map) => {
-//   const clone = new Map();
-//   map.forEach((entry, key) => clone.set(key, { ...entry }));
-//   return clone;
-// }
+const useFetchSet = (refStr) => {
+  const [state, setState] = useState(null);
+  const ref = DATABASE.ref(refStr);
+
+  useEffect(() => {
+    const listener = ref.on('value', snapshot => {
+      const newState = new Set();
+      snapshot.forEach(value => { newState.add(value.key) }
+      );
+      setState(newState);
+    }, (err) => {
+      console.log('%cThe read failed: ' + err, "color: red;");
+    });
+    return () => vocabDatabase.off('value', listener);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return state;
+}
+
+const cloneVocabMap = (map) => {
+  const clone = new Map();
+
+  map.forEach((entry, key) => {
+    const entryClone = {};
+    for (const propertyKey in entry) {
+      const propertyValue = entry[propertyKey];
+
+      if (Array.isArray(propertyValue)) {
+        entryClone[propertyKey] = [...propertyValue];
+      } else {
+        entryClone[propertyKey] = propertyValue;
+      }
+    }
+    clone.set(key, entryClone);
+  });
+  return clone;
+}
 
 // const toTileCase = (str) => str.toLowerCase()
 //   .split(' ')
