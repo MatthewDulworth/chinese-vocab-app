@@ -249,13 +249,12 @@ function App() {
     const property = e.target.name;
 
     if (Array.isArray(updatedEntry[property])) {
-      console.log("nerd");
-      console.log(validFluencies);
-      console.log(validPOS);
+      const newArray = e.target.value.replace(/\s+/g, '').split(",");
+      updatedEntry[property] = newArray;
     } else {
       updatedEntry[property] = e.target.value;
-      setRenderedVocab(newRenderVocab);
     }
+    setRenderedVocab(newRenderVocab);
   }
 
   const handleEntryUnfocus = (e, key) => {
