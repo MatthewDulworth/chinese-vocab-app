@@ -81,7 +81,7 @@ function VocabEntry({
   handleChange,
   validFluencies,
 }) {
-  const fluencyOptions = Array.from(validFluencies).map(val => <option key={val} value={val}>{camelToTitle(val)}</option>);
+  const fluencyOptions = Array.from(validFluencies).map(fluency => <option key={fluency} value={fluency}>{camelToTitle(fluency)}</option>);
   return (
     <div className="VocabEntry">
       <input type="text" onChange={handleChange} name="simplified" value={simplified} />
@@ -150,61 +150,6 @@ function VocabTable({
       <VocabHeader />
       {tableBody}
     </section>
-  );
-}
-
-function AddVocabDialouge() {
-  const blankEntry = {
-    chinesesimplified: "",
-    chinesetraditional: "",
-    pinyin: "",
-    english: "",
-    partofspeech: "",
-    needspractice: false,
-    notes: "",
-  };
-
-  const [vocabEntry, setVocabEntry] = useState(blankEntry);
-  // const TABLE = useEasybase().db("VOCAB");
-
-  const handleChange = (event) => {
-    const updatedEntry = { ...vocabEntry };
-    if (event.target.type === "checkbox") {
-      updatedEntry[event.target.name] = event.target.checked;
-    } else {
-      updatedEntry[event.target.name] = event.target.value;
-    }
-    setVocabEntry(updatedEntry);
-  }
-
-  const submitEntry = async (event) => {
-    event.preventDefault();
-    // const recs = await TABLE.insert(vocabEntry).one();
-    console.log(`submitted ${0} vocab entries: NOT IMPLEMENTED`);
-    setVocabEntry(blankEntry);
-  }
-
-  return (
-    <div id="AddVocabDialouge">
-      <div>Add Vocab Entry</div>
-      <form spellCheck="false">
-        Chinese (Simplified)
-        <input type="text" onChange={handleChange} value={vocabEntry.chinesesimplified} name="chinesesimplified" />
-        Chinese (Traditional)
-        <input type="text" onChange={handleChange} value={vocabEntry.chinesetraditional} name="chinesetraditional" />
-        Pinyin
-        <input type="text" onChange={handleChange} value={vocabEntry.pinyin} name="pinyin" />
-        English
-        <input type="text" onChange={handleChange} value={vocabEntry.english} name="english" spellCheck="true" />
-        Part of Speech
-        <input type="text" onChange={handleChange} value={vocabEntry.partofspeech} name="partofspeech" spellCheck="true" />
-        Needs Practice?
-        <input type="checkbox" onChange={handleChange} checked={vocabEntry.needspractice} name="needspractice" />
-        Notes
-        <input type="text" onChange={handleChange} value={vocabEntry.notes} name="notes" />
-        <button onClick={submitEntry}>Submit</button>
-      </form>
-    </div>
   );
 }
 
@@ -301,6 +246,22 @@ function App() {
     console.log("implement handle delete", key);
   }
 
+  const handleAddVocab = (e) => {
+    e.preventDefault();
+
+    const blankVocab = {
+      simplified: "",
+      traditional: "",
+      pinyin: "",
+      english: [""],
+      partsOfSpeech: [""],
+      fluency: "fluent",
+      notes: "",
+    }
+    const key = vocabDatabase.push(blankVocab, err => err ? console.error("" + err) : console.log("successful add"));
+    setRenderedVocab(new Map(renderedVocab).set(key, blankVocab));
+  }
+
   // ----------------------------------------
   // Render
   // ----------------------------------------
@@ -317,7 +278,7 @@ function App() {
         validFluencies={validFluencies}
         validPOS={validPOS}
       />
-      <AddVocabDialouge />
+      <button onClick={handleAddVocab}>Add Vocab</button>
     </div>
   );
 }
