@@ -265,8 +265,18 @@ function App() {
 
   const handleEntrySaveChanges = (e, key) => {
     e.preventDefault();
+    // validate parts of speech
+    const updatedEntry = renderedVocab.get(key);
+    const hasValidPOS = updatedEntry.partsOfSpeech.reduce((validation, pos) => validation && validPOS.has(pos));
+
+    if (!hasValidPOS) {
+      console.log("invalid part of speech");
+      updatedEntry.partsOfSpeech = [...fullVocabMap.current.get(key).partsOfSpeech];
+      setRenderedVocab(new Map(renderedVocab));
+      return;
+    }
     // push change to db
-    vocabDatabase.child(key).update(renderedVocab.get(key), err => {
+    vocabDatabase.child(key).update(updatedEntry, err => {
       err ? console.error("failed update: " + err) : console.log("successful update");
     });
     // remove from unsaved list 
