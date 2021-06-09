@@ -243,7 +243,15 @@ function App() {
 
   const handleEntryDelete = (e, key) => {
     e.preventDefault();
-    console.log("implement handle delete", key);
+
+    const confirmation = window.confirm("Delete Entry?");
+
+    if (confirmation) {
+      console.log("confirmed");
+      vocabDatabase.child(key).remove(err => err ? console.error("" + err) : console.log("deleted entry"));
+      renderedVocab.delete(key);
+      setRenderedVocab(new Map(renderedVocab));
+    }
   }
 
   const handleAddVocab = (e) => {
@@ -258,7 +266,7 @@ function App() {
       fluency: "fluent",
       notes: "",
     }
-    const key = vocabDatabase.push(blankVocab, err => err ? console.error("" + err) : console.log("successful add"));
+    const key = vocabDatabase.push(blankVocab, err => err ? console.error("" + err) : console.log("successful add")).key;
     setRenderedVocab(new Map(renderedVocab).set(key, blankVocab));
   }
 
