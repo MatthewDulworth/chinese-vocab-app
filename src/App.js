@@ -1,6 +1,5 @@
 import './App.css';
 import React, { useEffect, useRef, useState, Fragment } from 'react';
-import FocusWithin from 'react-focus-within';
 import firebase from "firebase/app";
 import "firebase/database";
 
@@ -79,36 +78,44 @@ function VocabEntry({
   partsOfSpeech,
   fluency,
   notes,
+  handleChange,
+  validFluencies,
+}) {
+  const fluencyOptions = Array.from(validFluencies).map(val => <option key={val} value={val}>{camelToTitle(val)}</option>);
+  return (
+    <div className="VocabEntry">
+      <input type="text" onChange={handleChange} name="simplified" value={simplified} />
+      <input type="text" onChange={handleChange} name="traditional" value={traditional} />
+      <input type="text" onChange={handleChange} name="pinyin" value={pinyin} />
+      <input type="text" onChange={handleChange} name="english" value={english} spellCheck="true" />
+      <input type="text" onChange={handleChange} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
+      <select onChange={handleChange} name="fluency" value={fluency}>{fluencyOptions}</select>
+      <input type="text" onChange={handleChange} name="notes" value={notes} />
+    </div>
+  );
+}
+
+function VocabEntryWrapper({
+  vocabEntry,
   _key,
   handleCellChange,
-  handleEntryUnfocus,
   handleEntryDelete,
   handleEntrySaveChanges,
   handleEntryDiscardChanges,
   validFluencies,
   edited,
 }) {
-
-  const handleChange = (e) => { handleCellChange(e, _key) };
-  const fluencyOptions = Array.from(validFluencies).map(val => <option key={val} value={val}>{camelToTitle(val)}</option>);
-
   return (
-    <FocusWithin onBlur={(e) => handleEntryUnfocus(e, _key)}>
-      {({ focusProps }) => (
-        <form className="VocabEntry" spellCheck="false">
-          <input type="text" onChange={handleChange} {...focusProps} name="simplified" value={simplified} />
-          <input type="text" onChange={handleChange} {...focusProps} name="traditional" value={traditional} />
-          <input type="text" onChange={handleChange} {...focusProps} name="pinyin" value={pinyin} />
-          <input type="text" onChange={handleChange} {...focusProps} name="english" value={english} spellCheck="true" />
-          <input type="text" onChange={handleChange} {...focusProps} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
-          <select onChange={handleChange} {...focusProps} name="fluency" value={fluency}>{fluencyOptions}</select>
-          <input type="text" onChange={handleChange} {...focusProps} name="notes" value={notes} />
-          <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
-          <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={edited}>Save Changes</button>
-          <button onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={edited}>Discard Changes</button>
-        </form>
-      )}
-    </FocusWithin>
+    <form className="VocabEntryWrapper" spellCheck="false">
+      <VocabEntry
+        {...vocabEntry}
+        handleChange={(e) => handleCellChange(e, _key)}
+        validFluencies={validFluencies}
+      />
+      <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
+      <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={edited}>Save Changes</button>
+      <button onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={edited}>Discard Changes</button>
+    </form>
   );
 }
 
@@ -116,7 +123,6 @@ function VocabTable({
   vocabList,
   editedVocab,
   handleCellChange,
-  handleEntryUnfocus,
   handleEntryDelete,
   handleEntrySaveChanges,
   handleEntryDiscardChanges,
@@ -125,11 +131,10 @@ function VocabTable({
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
     return (
       <Fragment key={key}>
-        <VocabEntry
-          {...vocabEntry}
+        <VocabEntryWrapper
+          vocabEntry={vocabEntry}
           _key={key}
           handleCellChange={handleCellChange}
-          handleEntryUnfocus={handleEntryUnfocus}
           handleEntryDelete={handleEntryDelete}
           handleEntrySaveChanges={handleEntrySaveChanges}
           handleEntryDiscardChanges={handleEntryDiscardChanges}
@@ -259,10 +264,6 @@ function App() {
     setRenderedVocab(newRenderVocab);
   }
 
-  const handleEntryUnfocus = (e, key) => {
-    console.log("implement handle unfocus", key)
-  };
-
   const handleEntrySaveChanges = (e, key) => {
     e.preventDefault();
     // validate parts of speech
@@ -310,7 +311,6 @@ function App() {
         vocabList={renderedVocab}
         editedVocab={editedVocab}
         handleCellChange={handleCellChange}
-        handleEntryUnfocus={handleEntryUnfocus}
         handleEntryDelete={handleEntryDelete}
         handleEntrySaveChanges={handleEntrySaveChanges}
         handleEntryDiscardChanges={handleEntryDiscardChanges}

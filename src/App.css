@@ -15,13 +15,14 @@
 }
 
 /* account for header havinf fewer elements then */
+
 #VocabHeader .last {
   grid-column-end: span 4;
 }
 
 /* remove row containers from grid */
 
-#VocabHeader, .VocabEntry {
+#VocabHeader, .VocabEntryWrapper, .VocabEntry {
   display: contents;
 }
 
@@ -30,12 +31,6 @@
   position: sticky;
   top: 0;
   background-color: white;
-}
-
-/* all grid cells */
-
-#VocabHeader>*, #VocabEntry>* {
-  padding-top: 10px;
 }
 
 /* Add Vocab Dialouge */
