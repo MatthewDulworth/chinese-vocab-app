@@ -85,11 +85,13 @@ function VocabEntry({
   handleEntryDelete,
   handleEntrySaveChanges,
   validFluencies,
+  saveDisabled,
 }) {
 
   const handleChange = (e) => { handleCellChange(e, _key) };
   const fluencyOptions = Array.from(validFluencies).map(val => <option key={val} value={val}>{camelToTitle(val)}</option>);
 
+  console.log(_key, saveDisabled);
   return (
     <FocusWithin onBlur={(e) => handleEntryUnfocus(e, _key)}>
       {({ focusProps }) => (
@@ -102,7 +104,7 @@ function VocabEntry({
           <select onChange={handleChange} {...focusProps} name="fluency" value={fluency}>{fluencyOptions}</select>
           <input type="text" onChange={handleChange} {...focusProps} name="notes" value={notes} />
           <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
-          <button onClick={(e) => handleEntrySaveChanges(e, _key)}>Save Changes</button>
+          <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={saveDisabled}>Save Changes</button>
         </form>
       )}
     </FocusWithin>
@@ -111,6 +113,7 @@ function VocabEntry({
 
 function VocabTable({
   vocabList,
+  unsavedVocab,
   handleCellChange,
   handleEntryUnfocus,
   handleEntryDelete,
@@ -128,6 +131,7 @@ function VocabTable({
           handleEntryDelete={handleEntryDelete}
           handleEntrySaveChanges={handleEntrySaveChanges}
           validFluencies={validFluencies}
+          saveDisabled={!unsavedVocab.has(key)}
         />
       </Fragment>
     );
@@ -202,6 +206,7 @@ function AddVocabDialouge() {
 function App() {
   const [renderedVocab, setRenderedVocab] = useState(new Map());  // vocab rendered to screen, modified subset of fullVocabMap
   const fullVocabMap = useRef(new Map());                         // identical to db vocab
+  const [unsavedVocab, setUnsavedVocab] = useState(new Set());    // subset of rendered vocab that have been edited but not saved
   const isInitialMount = useRef(true);                            // tracks the first db mount
   const validFluencies = useFetchSet("/validFluencies");          // possible fluencies
   const validPOS = useFetchSet("/validPOS");                      // possible parts of speech
@@ -246,6 +251,7 @@ function App() {
     } else {
       updatedEntry[property] = e.target.value;
     }
+    setUnsavedVocab(new Set(unsavedVocab).add(key));
     setRenderedVocab(newRenderVocab);
   }
 
@@ -257,6 +263,8 @@ function App() {
     vocabDatabase.child(key).update(renderedVocab.get(key), err => {
       err ? console.error("failed update: " + err) : console.log("successful update");
     });
+    const unsaved = new Set(unsavedVocab).delete(key);
+    setUnsavedVocab(unsaved);
   }
 
   const handleEntryDelete = (e, key) => {
@@ -272,6 +280,7 @@ function App() {
       <SearchBar />
       <VocabTable
         vocabList={renderedVocab}
+        unsavedVocab={unsavedVocab}
         handleCellChange={handleCellChange}
         handleEntryUnfocus={handleEntryUnfocus}
         handleEntryDelete={handleEntryDelete}
