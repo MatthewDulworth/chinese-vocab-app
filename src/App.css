@@ -11,7 +11,12 @@
   min-width: 100%;
   border-collapse: collapse;
   padding: 20px;
-  grid-template-columns: repeat(8, auto);
+  grid-template-columns: repeat(9, auto);
+}
+
+/* account for header havinf fewer elements then */
+#VocabHeader .last {
+  grid-column-end: span 3;
 }
 
 /* remove row containers from grid */

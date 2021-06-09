@@ -1,7 +1,6 @@
 import './App.css';
 import React, { useEffect, useRef, useState, Fragment } from 'react';
 import FocusWithin from 'react-focus-within';
-
 import firebase from "firebase/app";
 import "firebase/database";
 
@@ -67,8 +66,7 @@ function VocabHeader() {
       <div>English</div>
       <div>Parts of Speech</div>
       <div>Fluency</div>
-      <div>Notes</div>
-      <div></div>
+      <div className="last">Notes</div>
     </header>
   );
 }
@@ -85,8 +83,8 @@ function VocabEntry({
   handleCellChange,
   handleEntryUnfocus,
   handleEntryDelete,
+  handleEntrySaveChanges,
   validFluencies,
-  validPOS,
 }) {
 
   const handleChange = (e) => { handleCellChange(e, _key) };
@@ -104,6 +102,7 @@ function VocabEntry({
           <select onChange={handleChange} {...focusProps} name="fluency" value={fluency}>{fluencyOptions}</select>
           <input type="text" onChange={handleChange} {...focusProps} name="notes" value={notes} />
           <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
+          <button onClick={(e) => handleEntrySaveChanges(e, _key)}>Save Changes</button>
         </form>
       )}
     </FocusWithin>
@@ -115,8 +114,8 @@ function VocabTable({
   handleCellChange,
   handleEntryUnfocus,
   handleEntryDelete,
+  handleEntrySaveChanges,
   validFluencies,
-  validPOS
 }) {
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
     return (
@@ -127,8 +126,8 @@ function VocabTable({
           handleCellChange={handleCellChange}
           handleEntryUnfocus={handleEntryUnfocus}
           handleEntryDelete={handleEntryDelete}
+          handleEntrySaveChanges={handleEntrySaveChanges}
           validFluencies={validFluencies}
-          validPOS={validPOS}
         />
       </Fragment>
     );
@@ -225,6 +224,8 @@ function App() {
         setRenderedVocab(cloneVocabMap(vocabEntries));
         isInitialMount.current = false;
       }
+    }, err => {
+      console.error("failed fetch: " + err);
     });
     return () => vocabDatabase.off('value', listener);
   }, []);
@@ -249,12 +250,18 @@ function App() {
   }
 
   const handleEntryUnfocus = (e, key) => {
-    console.log("implement unfocus", key);
+    console.log("implement handle unfocus", key)
+  };
+
+  const handleEntrySaveChanges = (e, key) => {
+    vocabDatabase.child(key).update(renderedVocab.get(key), err => {
+      err ? console.error("failed update: " + err) : console.log("successful update");
+    });
   }
 
   const handleEntryDelete = (e, key) => {
     e.preventDefault();
-    console.log("implement delete", key);
+    console.log("implement handle delete", key);
   }
 
   // ----------------------------------------
@@ -268,6 +275,7 @@ function App() {
         handleCellChange={handleCellChange}
         handleEntryUnfocus={handleEntryUnfocus}
         handleEntryDelete={handleEntryDelete}
+        handleEntrySaveChanges={handleEntrySaveChanges}
         validFluencies={validFluencies}
         validPOS={validPOS}
       />
