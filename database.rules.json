@@ -3,7 +3,6 @@
     "vocab": {
       ".read": true,
       ".write": true,
-      
       "$entry": {
         ".validate": "newData.hasChildren(['simplified', 'traditional', 'pinyin', 'english', 'partsOfSpeech', 'fluency', 'notes'])",
         "simplified": {
@@ -16,7 +15,7 @@
           ".validate": "newData.isString()"
         },
         "english": {
-          "word": {
+          "$word": {
             ".validate": "newData.isString()"
           }
         },
@@ -26,7 +25,7 @@
           }
         },
         "fluency": {
-          ".validate": "root.child('validFluency/' + newData.val()).exists()"
+          ".validate": "root.child('validFluencies/' + newData.val()).exists()"
         },
         "notes": {
           ".validate": "newData.isString()"
