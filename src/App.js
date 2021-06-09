@@ -84,14 +84,14 @@ function VocabEntry({
   handleEntryUnfocus,
   handleEntryDelete,
   handleEntrySaveChanges,
+  handleEntryDiscardChanges,
   validFluencies,
-  saveDisabled,
+  edited,
 }) {
 
   const handleChange = (e) => { handleCellChange(e, _key) };
   const fluencyOptions = Array.from(validFluencies).map(val => <option key={val} value={val}>{camelToTitle(val)}</option>);
 
-  console.log(_key, saveDisabled);
   return (
     <FocusWithin onBlur={(e) => handleEntryUnfocus(e, _key)}>
       {({ focusProps }) => (
@@ -104,7 +104,8 @@ function VocabEntry({
           <select onChange={handleChange} {...focusProps} name="fluency" value={fluency}>{fluencyOptions}</select>
           <input type="text" onChange={handleChange} {...focusProps} name="notes" value={notes} />
           <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
-          <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={saveDisabled}>Save Changes</button>
+          <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={edited}>Save Changes</button>
+          <button onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={edited}>Discard Changes</button>
         </form>
       )}
     </FocusWithin>
@@ -113,11 +114,12 @@ function VocabEntry({
 
 function VocabTable({
   vocabList,
-  unsavedVocab,
+  editedVocab,
   handleCellChange,
   handleEntryUnfocus,
   handleEntryDelete,
   handleEntrySaveChanges,
+  handleEntryDiscardChanges,
   validFluencies,
 }) {
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
@@ -130,8 +132,9 @@ function VocabTable({
           handleEntryUnfocus={handleEntryUnfocus}
           handleEntryDelete={handleEntryDelete}
           handleEntrySaveChanges={handleEntrySaveChanges}
+          handleEntryDiscardChanges={handleEntryDiscardChanges}
           validFluencies={validFluencies}
-          saveDisabled={!unsavedVocab.has(key)}
+          edited={!editedVocab.has(key)}
         />
       </Fragment>
     );
@@ -206,7 +209,7 @@ function AddVocabDialouge() {
 function App() {
   const [renderedVocab, setRenderedVocab] = useState(new Map());  // vocab rendered to screen, modified subset of fullVocabMap
   const fullVocabMap = useRef(new Map());                         // identical to db vocab
-  const [unsavedVocab, setUnsavedVocab] = useState(new Set());    // subset of rendered vocab that have been edited but not saved
+  const [editedVocab, setEditedVocab] = useState(new Set());      // subset of rendered vocab that have been edited but not saved
   const isInitialMount = useRef(true);                            // tracks the first db mount
   const validFluencies = useFetchSet("/validFluencies");          // possible fluencies
   const validPOS = useFetchSet("/validPOS");                      // possible parts of speech
@@ -229,6 +232,7 @@ function App() {
         setRenderedVocab(cloneVocabMap(vocabEntries));
         isInitialMount.current = false;
       }
+      console.log("%cfetching db", "color: yellow;");
     }, err => {
       console.error("failed fetch: " + err);
     });
@@ -251,7 +255,7 @@ function App() {
     } else {
       updatedEntry[property] = e.target.value;
     }
-    setUnsavedVocab(new Set(unsavedVocab).add(key));
+    setEditedVocab(new Set(editedVocab).add(key));
     setRenderedVocab(newRenderVocab);
   }
 
@@ -260,11 +264,25 @@ function App() {
   };
 
   const handleEntrySaveChanges = (e, key) => {
+    e.preventDefault();
+    // push change to db
     vocabDatabase.child(key).update(renderedVocab.get(key), err => {
       err ? console.error("failed update: " + err) : console.log("successful update");
     });
-    const unsaved = new Set(unsavedVocab).delete(key);
-    setUnsavedVocab(unsaved);
+    // remove from unsaved list 
+    const unsaved = new Set(editedVocab);
+    unsaved.delete(key);
+    setEditedVocab(unsaved);
+  }
+
+  const handleEntryDiscardChanges = (e, key) => {
+    e.preventDefault();
+    // reset entry from fullVocabMap
+    setRenderedVocab(new Map(renderedVocab.set(key, cloneVocabEntry(fullVocabMap.current.get(key)))));
+    // remove entry from unsaved list
+    const unsaved = new Set(editedVocab);
+    unsaved.delete(key);
+    setEditedVocab(unsaved);
   }
 
   const handleEntryDelete = (e, key) => {
@@ -280,11 +298,12 @@ function App() {
       <SearchBar />
       <VocabTable
         vocabList={renderedVocab}
-        unsavedVocab={unsavedVocab}
+        editedVocab={editedVocab}
         handleCellChange={handleCellChange}
         handleEntryUnfocus={handleEntryUnfocus}
         handleEntryDelete={handleEntryDelete}
         handleEntrySaveChanges={handleEntrySaveChanges}
+        handleEntryDiscardChanges={handleEntryDiscardChanges}
         validFluencies={validFluencies}
         validPOS={validPOS}
       />
@@ -325,21 +344,22 @@ const useFetchSet = (refStr) => {
 
 const cloneVocabMap = (map) => {
   const clone = new Map();
-
-  map.forEach((entry, key) => {
-    const entryClone = {};
-    for (const propertyKey in entry) {
-      const propertyValue = entry[propertyKey];
-
-      if (Array.isArray(propertyValue)) {
-        entryClone[propertyKey] = [...propertyValue];
-      } else {
-        entryClone[propertyKey] = propertyValue;
-      }
-    }
-    clone.set(key, entryClone);
-  });
+  map.forEach((entry, key) => clone.set(key, cloneVocabEntry(entry)));
   return clone;
+}
+
+const cloneVocabEntry = (vocabEntry) => {
+  const entryClone = {};
+  for (const propertyKey in vocabEntry) {
+    const propertyValue = vocabEntry[propertyKey];
+
+    if (Array.isArray(propertyValue)) {
+      entryClone[propertyKey] = [...propertyValue];
+    } else {
+      entryClone[propertyKey] = propertyValue;
+    }
+  }
+  return entryClone;
 }
 
 export default App;
