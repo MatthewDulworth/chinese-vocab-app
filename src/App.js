@@ -16,9 +16,9 @@ var firebaseConfig = {
 const DATABASE = firebase.database();
 const vocabDatabase = DATABASE.ref("/vocab");
 
-function SearchBar({ 
-  handleSearch, 
-  validFluencies, 
+function SearchBar({
+  handleSearch,
+  validFluencies,
   validPOS }) {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("english");
@@ -243,7 +243,7 @@ function App() {
     const property = e.target.name;
 
     if (Array.isArray(updatedEntry[property])) {
-      const newArray = e.target.value.replace(/\s+/g, '').split(",");
+      const newArray = e.target.value.split(",");
       updatedEntry[property] = newArray;
     } else {
       updatedEntry[property] = e.target.value;
@@ -254,10 +254,15 @@ function App() {
 
   const handleEntrySaveChanges = (e, key) => {
     e.preventDefault();
-    // validate parts of speech
-    const updatedEntry = renderedVocab.get(key);
-    const hasValidPOS = updatedEntry.partsOfSpeech.reduce((validation, pos) => validation && validPOS.has(pos));
 
+    // trim array inputs
+    const updatedEntry = renderedVocab.get(key);
+    updatedEntry.english = updatedEntry.english.map(word => word.trim());
+    updatedEntry.partsOfSpeech = updatedEntry.partsOfSpeech.map(pos => pos.trim());
+    setRenderedVocab(new Map(renderedVocab));
+
+    // validate parts of speech
+    const hasValidPOS = updatedEntry.partsOfSpeech.reduce((validation, pos) => validation && validPOS.has(pos));
     if (!hasValidPOS) {
       console.log("invalid part of speech");
       updatedEntry.partsOfSpeech = [...fullVocabMap.current.get(key).partsOfSpeech];
@@ -390,7 +395,6 @@ const useFetchSet = (refStr) => {
     return () => vocabDatabase.off('value', listener);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   return state;
 }
 
