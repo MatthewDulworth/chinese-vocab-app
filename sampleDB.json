@@ -1,7 +1,7 @@
 {
   "validFluencies" : {
     "fluent" : true,
-    "notFluent" : true
+    "not fluent" : true
   },
   "validPOS" : {
     "adjective" : true,
@@ -9,12 +9,11 @@
     "greeting" : true,
     "noun" : true,
     "pronoun" : true,
-    "questionParticle" : true,
-    "questionPronoun" : true,
-    "timeWord" : true,
+    "question particle" : true,
+    "question pronoun" : true,
+    "time word" : true,
     "verb" : true
   },
-
   "vocab" : {
     "-MbmbVF_q4rJiYFduQ0j" : {
       "english" : [ "you" ],
