@@ -16,19 +16,24 @@ var firebaseConfig = {
 const DATABASE = firebase.database();
 const vocabDatabase = DATABASE.ref("/vocab");
 
-function SearchBar() {
-  const [searchText, setSearchText] = useState("");
-  const [searchLang, setSearchLang] = useState("english");
-  const [searchPOS, setSearchPos] = useState("any");
-  const [fluencyLevel, setFluencyLevel] = useState("any");
+function SearchBar({ handleSearch, validFluencies, validPOS }) {
+  const [text, setText] = useState("");
+  const [language, setLanguage] = useState("english");
+  const [partOfSpeech, setPOS] = useState("any");
+  const [fluency, setFluency] = useState("any");
+
+  const POSOptions = validPOS ? Array.from(validPOS)
+    .map((pos) => <option value={pos} key={pos}>{camelToTitle(pos)}</option>) : "";
+
+  const fluencyOptions = validFluencies ? Array.from(validFluencies)
+    .map(fluency => <option value={fluency} key={fluency}>{camelToTitle(fluency)}</option>) : "";
 
   return (
     <div id="SearchBar" >
       Search
       <form>
-
         Search Language:
-        <select value={searchLang} onChange={(e) => setSearchLang(e.target.value)}>
+        <select value={language} onChange={(e) => setLanguage(e.target.value)}>
           <option value="chinesesimplified">中文 (Simplified)</option>
           <option value="chinesetraditional">中文 (Traditional)</option>
           <option value="pinyin">拼音</option>
@@ -36,21 +41,20 @@ function SearchBar() {
         </select>
 
         Part of Speech:
-        <select value={searchPOS} onChange={(e) => setSearchPos(e.target.value)}>
+        <select value={partOfSpeech} onChange={(e) => setPOS(e.target.value)}>
           <option value="any">Any</option>
-          {/* {partsOfSpeech.map((pos, i) => <option value={pos} key={i}>{toTileCase(pos)}</option>)} */}
+          {POSOptions}
         </select>
 
         Fluency Level:
-        <select value={fluencyLevel} onChange={(e) => setFluencyLevel(e.target.value)}>
+        <select value={fluency} onChange={(e) => setFluency(e.target.value)}>
           <option value="any">Any</option>
-          <option value="needs practice">Needs Practice</option>
-          <option value="fluent">Fluent</option>
+          {fluencyOptions}
         </select>
 
-        <input type="text" value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+        <input type="text" value={text} onChange={(e) => setText(e.target.value)} />
 
-        <button>Go!</button>
+        <button onClick={(e) => handleSearch(e, text, language, partOfSpeech, fluency)}>Go!</button>
       </form>
     </div>
   );
@@ -195,7 +199,7 @@ function App() {
   const fullVocabMap = useRef(new Map());                         // identical to db vocab
   const [editedVocab, setEditedVocab] = useState(new Set());      // subset of rendered vocab that have been edited but not saved
   const isInitialMount = useRef(true);                            // tracks the first db mount
-  const validFluencies = useFetchSet("/validFluencies");          // possible fluencies
+  const validFluencies = useFetchSet("/validFluencies");          // possible fluencies TODO: memoize fluency options
   const validPOS = useFetchSet("/validPOS");                      // possible parts of speech
 
   // ----------------------------------------
@@ -310,12 +314,21 @@ function App() {
     setRenderedVocab(new Map(renderedVocab));
   };
 
+  const handleSearch = (e, text, language, partOfSpeech, fluency) => {
+    e.preventDefault();
+    console.log(text, language, partOfSpeech, fluency);
+  }
+
   // ----------------------------------------
   // Render
   // ----------------------------------------
   return (
     <div id="App">
-      <SearchBar />
+      <SearchBar
+        handleSearch={handleSearch}
+        validFluencies={validFluencies}
+        validPOS={validPOS}
+      />
       <VocabTable
         vocabList={renderedVocab}
         editedVocab={editedVocab}

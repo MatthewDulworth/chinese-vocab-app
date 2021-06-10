@@ -1,35 +1,29 @@
 {
-  "vocab": {
-    "one": {
-      "simplified": "我",
-      "traditional": "我",
-      "pinyin": "wǒ",
-      "english": {
-        "0": "I",
-        "1": "me"
-      },
-      "partsOfSpeech": {
-        "0": "pronoun"
-      },
-      "fluency": "fluent",
-      "notes": ""
+  "validFluencies" : {
+    "fluent" : true,
+    "notFluent" : true
+  },
+  "validPOS" : {
+    "adjective" : true,
+    "adverb" : true,
+    "greeting" : true,
+    "noun" : true,
+    "pronoun" : true,
+    "questionParticle" : true,
+    "questionPronoun" : true,
+    "timeWord" : true,
+    "verb" : true
+  },
+
+  "vocab" : {
+    "-MbmbVF_q4rJiYFduQ0j" : {
+      "english" : [ "you" ],
+      "fluency" : "notFluent",
+      "notes" : "helpfulwalnut",
+      "partsOfSpeech" : [ "pronoun", "noun" ],
+      "pinyin" : "nǐ",
+      "simplified" : "你",
+      "traditional" : "你"
     }
-  },
-
-  "validPOS": {
-    "verb": true,
-    "noun": true,
-    "adverb": true,
-    "pronoun": true,
-    "greeting": true,
-    "adjective": true,
-    "time_word": true,
-    "question_pronoun": true,
-    "question_particle": true
-  },
-
-  "validFluencies": {
-    "fluent": true,
-    "notFluent": true
   }
 }
