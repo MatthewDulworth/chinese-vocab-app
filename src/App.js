@@ -16,7 +16,10 @@ var firebaseConfig = {
 const DATABASE = firebase.database();
 const vocabDatabase = DATABASE.ref("/vocab");
 
-function SearchBar({ handleSearch, validFluencies, validPOS }) {
+function SearchBar({ 
+  handleSearch, 
+  validFluencies, 
+  validPOS }) {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("english");
   const [fluency, setFluency] = useState("any");
@@ -195,12 +198,14 @@ function VocabTable({
 // App
 // ----------------------------------------------------------------------
 function App() {
+  // TODO: memoize fluency options
+  // TODO: memoize pos options
   const [renderedVocab, setRenderedVocab] = useState(new Map());  // vocab rendered to screen, modified subset of fullVocabMap
   const fullVocabMap = useRef(new Map());                         // identical to db vocab
   const [editedVocab, setEditedVocab] = useState(new Set());      // subset of rendered vocab that have been edited but not saved
   const isInitialMount = useRef(true);                            // tracks the first db mount
-  const validFluencies = useFetchSet("/validFluencies");          // possible fluencies TODO: memoize fluency options
-  const validPOS = useFetchSet("/validPOS");                      // possible parts of speech
+  const validFluencies = useFetchSet("/validFluencies");          // possible fluencies 
+  const validPOS = useFetchSet("/validPOS");                      // possible parts of speech 
 
   // ----------------------------------------
   // Database 
