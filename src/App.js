@@ -19,8 +19,8 @@ const vocabDatabase = DATABASE.ref("/vocab");
 function SearchBar({ handleSearch, validFluencies, validPOS }) {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("english");
-  const [partOfSpeech, setPOS] = useState("any");
   const [fluency, setFluency] = useState("any");
+  const [partOfSpeech, setPOS] = useState("any");
 
   const POSOptions = validPOS ? Array.from(validPOS)
     .map((pos) => <option value={pos} key={pos}>{camelToTitle(pos)}</option>) : "";
@@ -34,8 +34,8 @@ function SearchBar({ handleSearch, validFluencies, validPOS }) {
       <form>
         Search Language:
         <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-          <option value="chinesesimplified">中文 (Simplified)</option>
-          <option value="chinesetraditional">中文 (Traditional)</option>
+          <option value="simplified">中文 (Simplified)</option>
+          <option value="traditional">中文 (Traditional)</option>
           <option value="pinyin">拼音</option>
           <option value="english">English</option>
         </select>
@@ -316,7 +316,22 @@ function App() {
 
   const handleSearch = (e, text, language, partOfSpeech, fluency) => {
     e.preventDefault();
-    console.log(text, language, partOfSpeech, fluency);
+
+    const newRenderVocab = new Map();
+    const anyFluency = fluency === "any";
+    const anyPOS = partOfSpeech === "any";
+    const anyText = text === "";
+
+    fullVocabMap.current.forEach((entry, key) => {
+      if ((anyFluency || entry.fluency === fluency)
+        && (anyPOS || entry.partsOfSpeech.includes(partOfSpeech))
+        && (anyText || entry[language].includes(text))
+      ) {
+        newRenderVocab.set(key, cloneVocabEntry(entry));
+      }
+    });
+
+    setRenderedVocab(newRenderVocab);
   }
 
   // ----------------------------------------
