@@ -2,6 +2,7 @@ import './App.css';
 import React, { useEffect, useRef, useState, Fragment } from 'react';
 import firebase from "firebase/app";
 import "firebase/database";
+import pinyin4js from 'pinyin4js';
 
 var firebaseConfig = {
   apiKey: "AIzaSyDIefnuJTzI4sUlFuNoRepOM6GDMsPdHTU",
@@ -107,21 +108,23 @@ function VocabEntry({
   partsOfSpeech,
   fluency,
   notes,
+  _key,
   handleChange,
+  handleEntryChineseUnfocus,
   handleNotesInputDone,
   validFluencies,
 }) {
   const [notesExpanded, setNotesExpanded] = useState(false);
   const fluencyOptions = Array.from(validFluencies).map(fluency => <option key={fluency} value={fluency}>{camelToTitle(fluency)}</option>);
   const handleNotesDone = (e, newNotes) => {
-    handleNotesInputDone(e, newNotes);
+    handleNotesInputDone(e, _key, newNotes);
     setNotesExpanded(false);
   }
 
   return (
     <div className="VocabEntry">
-      <input type="text" onChange={handleChange} name="simplified" value={simplified} />
-      <input type="text" onChange={handleChange} name="traditional" value={traditional} />
+      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="simplified" value={simplified} />
+      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="traditional" value={traditional} />
       <input type="text" onChange={handleChange} name="pinyin" value={pinyin} />
       <input type="text" onChange={handleChange} name="english" value={english} spellCheck="true" />
       <input type="text" onChange={handleChange} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
@@ -136,6 +139,7 @@ function VocabEntryWrapper({
   vocabEntry,
   _key,
   handleCellChange,
+  handleEntryChineseUnfocus,
   handleEntryDelete,
   handleEntrySaveChanges,
   handleEntryDiscardChanges,
@@ -147,8 +151,10 @@ function VocabEntryWrapper({
     <form className="VocabEntryWrapper" spellCheck="false">
       <VocabEntry
         {...vocabEntry}
+        _key={_key}
         handleChange={(e) => handleCellChange(e, _key)}
-        handleNotesInputDone={(e, newNotes) => handleNotesInputDone(e, _key, newNotes)}
+        handleEntryChineseUnfocus={handleEntryChineseUnfocus}
+        handleNotesInputDone={handleNotesInputDone}
         validFluencies={validFluencies}
       />
       <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
@@ -162,6 +168,7 @@ function VocabTable({
   vocabList,
   editedVocab,
   handleCellChange,
+  handleEntryChineseUnfocus,
   handleEntryDelete,
   handleEntrySaveChanges,
   handleEntryDiscardChanges,
@@ -175,6 +182,7 @@ function VocabTable({
           vocabEntry={vocabEntry}
           _key={key}
           handleCellChange={handleCellChange}
+          handleEntryChineseUnfocus={handleEntryChineseUnfocus}
           handleEntryDelete={handleEntryDelete}
           handleEntrySaveChanges={handleEntrySaveChanges}
           handleEntryDiscardChanges={handleEntryDiscardChanges}
@@ -250,6 +258,18 @@ function App() {
     }
     setEditedVocab(new Set(editedVocab).add(key));
     setRenderedVocab(newRenderVocab);
+  }
+
+  const handleEntryChineseUnfocus = (e, key) => {
+    e.preventDefault();
+    const entry = renderedVocab.get(key);
+
+    // autofill pinyin if necessary
+    if (entry.pinyin === "") {
+      console.log("yeet");
+      entry.pinyin = toPinyin(entry[e.target.name]);
+      setRenderedVocab(new Map(renderedVocab));
+    }
   }
 
   const handleEntrySaveChanges = (e, key) => {
@@ -358,6 +378,7 @@ function App() {
         vocabList={renderedVocab}
         editedVocab={editedVocab}
         handleCellChange={handleCellChange}
+        handleEntryChineseUnfocus={handleEntryChineseUnfocus}
         handleEntryDelete={handleEntryDelete}
         handleEntrySaveChanges={handleEntrySaveChanges}
         handleEntryDiscardChanges={handleEntryDiscardChanges}
@@ -417,5 +438,7 @@ const cloneVocabEntry = (vocabEntry) => {
   }
   return entryClone;
 }
+
+const toPinyin = (chinese) => pinyin4js.convertToPinyinString(chinese, ' ', pinyin4js.WITH_TONE_MARK);
 
 export default App;
