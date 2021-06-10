@@ -70,6 +70,28 @@ function VocabHeader() {
   );
 }
 
+function NotesInput({
+  notes,
+  handleNotesInputDone
+}) {
+  const [newNotes, setNewNotes] = useState(notes);
+  const textArea = useRef(null);
+
+  useEffect(() => {
+    textArea.current.focus();
+    textArea.current.setSelectionRange(textArea.current.value.length, textArea.current.value.length);
+  }, []);
+
+  return (
+    <div className="NotesInput">
+      <div>
+        <textarea rows="10" cols="50" value={newNotes} onChange={(e) => setNewNotes(e.target.value)} ref={textArea}></textarea>
+        <button onClick={(e) => handleNotesInputDone(e, newNotes)}>Done</button>
+      </div>
+    </div>
+  );
+}
+
 function VocabEntry({
   simplified,
   traditional,
@@ -79,9 +101,16 @@ function VocabEntry({
   fluency,
   notes,
   handleChange,
+  handleNotesInputDone,
   validFluencies,
 }) {
+  const [notesExpanded, setNotesExpanded] = useState(false);
   const fluencyOptions = Array.from(validFluencies).map(fluency => <option key={fluency} value={fluency}>{camelToTitle(fluency)}</option>);
+  const handleNotesDone = (e, newNotes) => {
+    handleNotesInputDone(e, newNotes);
+    setNotesExpanded(false);
+  }
+
   return (
     <div className="VocabEntry">
       <input type="text" onChange={handleChange} name="simplified" value={simplified} />
@@ -90,7 +119,8 @@ function VocabEntry({
       <input type="text" onChange={handleChange} name="english" value={english} spellCheck="true" />
       <input type="text" onChange={handleChange} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
       <select onChange={handleChange} name="fluency" value={fluency}>{fluencyOptions}</select>
-      <input type="text" onChange={handleChange} name="notes" value={notes} />
+      <input type="text" onClick={() => setNotesExpanded(true)} readOnly name="notes" value={notes} />
+      { notesExpanded && <NotesInput notes={notes} handleNotesInputDone={handleNotesDone} />}
     </div>
   );
 }
@@ -102,6 +132,7 @@ function VocabEntryWrapper({
   handleEntryDelete,
   handleEntrySaveChanges,
   handleEntryDiscardChanges,
+  handleNotesInputDone,
   validFluencies,
   edited,
 }) {
@@ -110,6 +141,7 @@ function VocabEntryWrapper({
       <VocabEntry
         {...vocabEntry}
         handleChange={(e) => handleCellChange(e, _key)}
+        handleNotesInputDone={(e, newNotes) => handleNotesInputDone(e, _key, newNotes)}
         validFluencies={validFluencies}
       />
       <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
@@ -126,6 +158,7 @@ function VocabTable({
   handleEntryDelete,
   handleEntrySaveChanges,
   handleEntryDiscardChanges,
+  handleNotesInputDone,
   validFluencies,
 }) {
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
@@ -138,6 +171,7 @@ function VocabTable({
           handleEntryDelete={handleEntryDelete}
           handleEntrySaveChanges={handleEntrySaveChanges}
           handleEntryDiscardChanges={handleEntryDiscardChanges}
+          handleNotesInputDone={handleNotesInputDone}
           validFluencies={validFluencies}
           edited={!editedVocab.has(key)}
         />
@@ -270,6 +304,12 @@ function App() {
     setRenderedVocab(new Map(renderedVocab).set(key, blankVocab));
   }
 
+  const handleNotesInputDone = (e, key, newNotes) => {
+    renderedVocab.get(key).notes = newNotes;
+    setEditedVocab(new Set(editedVocab).add(key));
+    setRenderedVocab(new Map(renderedVocab));
+  };
+
   // ----------------------------------------
   // Render
   // ----------------------------------------
@@ -283,8 +323,8 @@ function App() {
         handleEntryDelete={handleEntryDelete}
         handleEntrySaveChanges={handleEntrySaveChanges}
         handleEntryDiscardChanges={handleEntryDiscardChanges}
+        handleNotesInputDone={handleNotesInputDone}
         validFluencies={validFluencies}
-        validPOS={validPOS}
       />
       <button onClick={handleAddVocab}>Add Vocab</button>
     </div>
