@@ -263,13 +263,25 @@ function App() {
   const handleEntryChineseUnfocus = (e, key) => {
     e.preventDefault();
     const entry = renderedVocab.get(key);
+    let needsRerender = false;
 
     // autofill pinyin if necessary
     if (entry.pinyin === "") {
-      console.log("yeet");
       entry.pinyin = toPinyin(entry[e.target.name]);
-      setRenderedVocab(new Map(renderedVocab));
+      needsRerender = true;
     }
+
+    if (e.target.name === "simplified" && entry.traditional === "") {
+      entry.traditional = pinyin4js.convertToTraditionalChinese(entry.simplified);
+      needsRerender = true;
+    } else if (e.target.name === "traditional" && entry.simplified === "") {
+      entry.simplified = pinyin4js.convertToSimplifiedChinese(entry.traditional);
+      needsRerender = true;
+    }
+
+    if (needsRerender) {
+      setRenderedVocab(new Map(renderedVocab));
+    };
   }
 
   const handleEntrySaveChanges = (e, key) => {
