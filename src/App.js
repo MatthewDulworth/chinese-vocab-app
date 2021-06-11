@@ -294,7 +294,19 @@ function App() {
     setSignInOpen(false);
   }
 
-  const signOut = () => firebase.auth().signOut().catch(err => console.log(err));
+  const signOut = () => {
+    const confirmation = window.confirm("Unsaved changes will be discarded.");
+    if(!confirmation) {
+      return;
+    }
+
+    editedVocab.forEach(key => {
+      renderedVocab.set(key, cloneVocabEntry(fullVocabMap.current.get(key)));
+      setRenderedVocab(new Map(renderedVocab));
+    });
+
+    firebase.auth().signOut().catch(err => console.log(err))
+  };
 
   // ----------------------------------------
   // Events
