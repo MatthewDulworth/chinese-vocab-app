@@ -2,7 +2,7 @@
   "rules": {
     "vocab": {
       ".read": true,
-      ".write": true,
+      ".write": "auth != null",
       "$entry": {
         ".validate": "newData.hasChildren(['simplified', 'traditional', 'pinyin', 'english', 'partsOfSpeech', 'fluency', 'notes'])",
         "simplified": {
