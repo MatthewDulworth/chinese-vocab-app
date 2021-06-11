@@ -129,6 +129,7 @@ function VocabEntry({
   fluency,
   notes,
   _key,
+  canEdit,
   handleChange,
   handleEntryChineseUnfocus,
   handleNotesInputDone,
@@ -143,14 +144,16 @@ function VocabEntry({
 
   return (
     <div className="VocabEntry">
-      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="simplified" value={simplified} />
-      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="traditional" value={traditional} />
-      <input type="text" onChange={handleChange} name="pinyin" value={pinyin} />
-      <input type="text" onChange={handleChange} name="english" value={english} spellCheck="true" />
-      <input type="text" onChange={handleChange} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" />
-      <select onChange={handleChange} name="fluency" value={fluency}>{fluencyOptions}</select>
-      <input type="text" onClick={() => setNotesExpanded(true)} readOnly name="notes" value={notes} />
-      { notesExpanded && <NotesInput notes={notes} handleNotesInputDone={handleNotesDone} />}
+      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="simplified"
+        value={simplified} disabled={!canEdit} />
+      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="traditional"
+        value={traditional} disabled={!canEdit} />
+      <input type="text" onChange={handleChange} name="pinyin" value={pinyin} disabled={!canEdit} />
+      <input type="text" onChange={handleChange} name="english" value={english} spellCheck="true" disabled={!canEdit} />
+      <input type="text" onChange={handleChange} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" disabled={!canEdit} />
+      <select onChange={handleChange} name="fluency" value={fluency} disabled={!canEdit}>{fluencyOptions}</select>
+      <input type="text" onClick={() => setNotesExpanded(true)} readOnly name="notes" value={notes} disabled={!canEdit} />
+      { notesExpanded && canEdit && <NotesInput notes={notes} handleNotesInputDone={handleNotesDone} />}
     </div>
   );
 }
@@ -158,6 +161,7 @@ function VocabEntry({
 function VocabEntryWrapper({
   vocabEntry,
   _key,
+  canEdit,
   handleCellChange,
   handleEntryChineseUnfocus,
   handleEntryDelete,
@@ -172,14 +176,15 @@ function VocabEntryWrapper({
       <VocabEntry
         {...vocabEntry}
         _key={_key}
+        canEdit={canEdit}
         handleChange={(e) => handleCellChange(e, _key)}
         handleEntryChineseUnfocus={handleEntryChineseUnfocus}
         handleNotesInputDone={handleNotesInputDone}
         validFluencies={validFluencies}
       />
-      <button onClick={(e) => handleEntryDelete(e, _key)}>Delete Entry</button>
-      <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={edited}>Save Changes</button>
-      <button onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={edited}>Discard Changes</button>
+      <button onClick={(e) => handleEntryDelete(e, _key)} disabled={!canEdit}>Delete Entry</button>
+      <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={!canEdit || edited}>Save Changes</button>
+      <button onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={!canEdit || edited}>Discard Changes</button>
     </form>
   );
 }
@@ -187,6 +192,7 @@ function VocabEntryWrapper({
 function VocabTable({
   vocabList,
   editedVocab,
+  canEdit,
   handleCellChange,
   handleEntryChineseUnfocus,
   handleEntryDelete,
@@ -195,12 +201,14 @@ function VocabTable({
   handleNotesInputDone,
   validFluencies,
 }) {
+  console.log(canEdit);
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
     return (
       <Fragment key={key}>
         <VocabEntryWrapper
           vocabEntry={vocabEntry}
           _key={key}
+          canEdit={canEdit}
           handleCellChange={handleCellChange}
           handleEntryChineseUnfocus={handleEntryChineseUnfocus}
           handleEntryDelete={handleEntryDelete}
@@ -435,12 +443,14 @@ function App() {
         validPOS={validPOS}
       />
 
-      {!signedIn && <button onClick={(e) => setSignInOpen(true)}>Sign In</button>}
-      {signedIn && <button onClick={(e) => signOut()}>Sign Out</button>}
-      {signInOpen && <SignInDialouge signIn={signIn} handleCloseSignIn={(e) => setSignInOpen(false)} />}
+      {!signedIn && <button onClick={() => setSignInOpen(true)}>Sign In</button>}
+      {signedIn && <button onClick={() => signOut()}>Sign Out</button>}
+      {signInOpen && <SignInDialouge signIn={signIn} handleCloseSignIn={() => setSignInOpen(false)} />}
+
       <VocabTable
         vocabList={renderedVocab}
         editedVocab={editedVocab}
+        canEdit={signedIn}
         handleCellChange={handleCellChange}
         handleEntryChineseUnfocus={handleEntryChineseUnfocus}
         handleEntryDelete={handleEntryDelete}
@@ -449,7 +459,7 @@ function App() {
         handleNotesInputDone={handleNotesInputDone}
         validFluencies={validFluencies}
       />
-      <button onClick={handleAddVocab}>Add Vocab</button>
+      {signedIn && <button onClick={handleAddVocab}>Add Vocab</button>}
     </div>
   );
 }
