@@ -296,7 +296,7 @@ function App() {
 
   const signOut = () => {
     const confirmation = window.confirm("Unsaved changes will be discarded.");
-    if(!confirmation) {
+    if (!confirmation) {
       return;
     }
 
@@ -525,6 +525,6 @@ const cloneVocabEntry = (vocabEntry) => {
   return entryClone;
 }
 
-const toPinyin = (chinese) => pinyin4js.convertToPinyinString(chinese, ' ', pinyin4js.WITH_TONE_MARK);
+const toPinyin = (chinese) => pinyin4js.convertToPinyinString(chinese, '', pinyin4js.WITH_TONE_MARK);
 
 export default App;
