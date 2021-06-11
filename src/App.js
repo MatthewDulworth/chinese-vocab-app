@@ -2,6 +2,7 @@ import './App.css';
 import React, { useEffect, useRef, useState, Fragment } from 'react';
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/auth";
 import pinyin4js from 'pinyin4js';
 
 var firebaseConfig = {
@@ -16,6 +17,25 @@ var firebaseConfig = {
 !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app()
 const DATABASE = firebase.database();
 const vocabDatabase = DATABASE.ref("/vocab");
+
+function SignInDialouge({
+  signIn,
+  handleCloseSignIn
+}) {
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+
+  return (
+    <div id="SignInDialouge">
+      <label htmlFor="email">Email:</label>
+      <input id="email" type='email' value={email} onChange={(e) => setEmail(e.target.value)}></input>
+      <label htmlFor="password">Password:</label>
+      <input id="password" type='password' value={password} onChange={(e) => setPassword(e.target.value)}></input>
+      <button onClick={(e) => signIn(email, password)}>Sign In</button>
+      <button onClick={handleCloseSignIn}>Cancel</button>
+    </div>
+  );
+}
 
 function SearchBar({
   handleSearch,
@@ -214,6 +234,8 @@ function App() {
   const isInitialMount = useRef(true);                            // tracks the first db mount
   const validFluencies = useFetchSet("/validFluencies");          // possible fluencies 
   const validPOS = useFetchSet("/validPOS");                      // possible parts of speech 
+  const [signedIn, setSignedIn] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
 
   // ----------------------------------------
   // Database 
@@ -239,6 +261,32 @@ function App() {
     });
     return () => vocabDatabase.off('value', listener);
   }, []);
+
+  // ----------------------------------------
+  // Authentication
+  // ----------------------------------------
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        console.log("signed in");
+        setSignedIn(true);
+      } else {
+        console.log("signed out");
+        setSignedIn(false);
+      }
+    });
+  }, []);
+
+  const signIn = (email, password) => {
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .catch(err => {
+        console.log(err.code);
+        console.log(err.message);
+      });
+    setSignInOpen(false);
+  }
+
+  const signOut = () => firebase.auth().signOut().catch(err => console.log(err));
 
   // ----------------------------------------
   // Events
@@ -386,6 +434,10 @@ function App() {
         validFluencies={validFluencies}
         validPOS={validPOS}
       />
+
+      {!signedIn && <button onClick={(e) => setSignInOpen(true)}>Sign In</button>}
+      {signedIn && <button onClick={(e) => signOut()}>Sign Out</button>}
+      {signInOpen && <SignInDialouge signIn={signIn} handleCloseSignIn={(e) => setSignInOpen(false)} />}
       <VocabTable
         vocabList={renderedVocab}
         editedVocab={editedVocab}
