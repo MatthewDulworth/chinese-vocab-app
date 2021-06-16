@@ -1,5 +1,6 @@
 import './App.css';
-import React, { useEffect, useRef, useState, Fragment } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/auth";
@@ -88,8 +89,8 @@ function SearchBar({
 function VocabHeader() {
   return (
     <header id="VocabHeader">
-      <div>Chinese (Simplified)</div>
-      <div>Chinese (Traditional)</div>
+      <div>Simplified</div>
+      <div>Traditional</div>
       <div>Pinyin</div>
       <div>English</div>
       <div>Parts of Speech</div>
@@ -153,26 +154,29 @@ function VocabEntry({
   return (
     <div className="VocabEntry">
 
-      <textarea name="simplified"
+      <TextareaAutosize
+        name="simplified"
         value={simplified}
         onBlur={(e) => handleEntryChineseUnfocus(e, _key)}
         {...textAreaProps} />
 
-      <textarea name="traditional"
+      <TextareaAutosize
+        name="traditional"
         value={traditional}
         onBlur={(e) => handleEntryChineseUnfocus(e, _key)}
         {...textAreaProps} />
 
-      <textarea name="pinyin"
+      <TextareaAutosize
+        name="pinyin"
         value={pinyin}
         {...textAreaProps} />
 
-      <textarea name="english"
+      <TextareaAutosize name="english"
         value={english}
         spellCheck="true"
         {...textAreaProps} />
 
-      <textarea name="partsOfSpeech"
+      <TextareaAutosize name="partsOfSpeech"
         value={partsOfSpeech}
         spellCheck="true"
         {...textAreaProps} />
@@ -251,21 +255,20 @@ function VocabTable({
 }) {
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
     return (
-      <Fragment key={key}>
-        <VocabEntryWrapper
-          vocabEntry={vocabEntry}
-          _key={key}
-          canEdit={canEdit}
-          handleCellChange={handleCellChange}
-          handleEntryChineseUnfocus={handleEntryChineseUnfocus}
-          handleEntryDelete={handleEntryDelete}
-          handleEntrySaveChanges={handleEntrySaveChanges}
-          handleEntryDiscardChanges={handleEntryDiscardChanges}
-          handleNotesInputDone={handleNotesInputDone}
-          validFluencies={validFluencies}
-          edited={!editedVocab.has(key)}
-        />
-      </Fragment>
+      <VocabEntryWrapper
+        vocabEntry={vocabEntry}
+        _key={key}
+        canEdit={canEdit}
+        handleCellChange={handleCellChange}
+        handleEntryChineseUnfocus={handleEntryChineseUnfocus}
+        handleEntryDelete={handleEntryDelete}
+        handleEntrySaveChanges={handleEntrySaveChanges}
+        handleEntryDiscardChanges={handleEntryDiscardChanges}
+        handleNotesInputDone={handleNotesInputDone}
+        validFluencies={validFluencies}
+        edited={!editedVocab.has(key)}
+        key={key}
+      />
     );
   });
 

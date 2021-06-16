@@ -2,35 +2,29 @@
   box-sizing: border-box;
 }
 
+textarea, input {
+  font-family: inherit;
+  font-size: inherit;
+}
+
 #App {
   text-align: center;
 }
 
 #VocabTable {
-  display: grid;
+  display: flex;
   min-width: 100%;
   border-collapse: collapse;
   padding: 20px;
-  grid-template-columns: repeat(8, auto);
+  flex-direction: column;
 }
 
-/* account for header having fewer elements then each entry */
-
-#VocabHeader .last {
-  grid-column-end: span 2;
-}
-
-/* remove row containers from grid */
-
-#VocabHeader, .VocabEntryWrapper, #VocabTable .VocabEntry {
+.VocabEntry {
   display: contents;
 }
 
-#VocabHeader div {
-  text-align: start;
-  position: sticky;
-  top: 0;
-  background-color: white;
+.VocabEntryWrapper {
+  display: flex;
 }
 
 .VocabEntry>*:disabled {
@@ -44,10 +38,9 @@
   box-shadow: none;
   width: fit-content;
   resize: none;
-  font-family: inherit;
 }
 
-.VocabEntry > input[type="text"] {
+.VocabEntry>input[type="text"] {
   border: none;
   background-image: none;
   background-color: transparent;
@@ -59,13 +52,10 @@
   padding: 5px;
 }
 
-.entryBtns > * {
+.entryBtns>* {
   margin: 5px;
   cursor: pointer;
 }
-
-
-
 
 /* Notes */
 
