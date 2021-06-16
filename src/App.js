@@ -127,7 +127,9 @@ function VocabEntry({
   traditional,
   pinyin,
   english,
+  englishString,
   partsOfSpeech,
+  posString,
   fluency,
   notes,
   _key,
@@ -171,13 +173,13 @@ function VocabEntry({
         value={pinyin}
         {...textAreaProps} />
 
-      <TextareaAutosize name="english"
-        value={english}
+      <TextareaAutosize name="englishString"
+        value={englishString}
         spellCheck="true"
         {...textAreaProps} />
 
-      <TextareaAutosize name="partsOfSpeech"
-        value={partsOfSpeech}
+      <TextareaAutosize name="posString"
+        value={posString}
         spellCheck="true"
         {...textAreaProps} />
 
@@ -411,8 +413,17 @@ function App() {
 
     // trim array inputs
     const updatedEntry = renderedVocab.get(key);
-    updatedEntry.english = updatedEntry.english.map(word => word.replace(/[\r\n\v]+/g, '').trim());
-    updatedEntry.partsOfSpeech = updatedEntry.partsOfSpeech.map(pos => pos.trim());
+
+    updatedEntry.english = updatedEntry.englishString
+      .replace(/[\r\n\v]+/g, '')
+      .split(",")
+      .map(s => s.trim())
+
+    updatedEntry.partsOfSpeech = updatedEntry.posString
+      .replace(/[\r\n\v]+/g, '')
+      .split(",")
+      .map(s => s.trim())
+
     setRenderedVocab(new Map(renderedVocab));
 
     // validate parts of speech
@@ -423,8 +434,11 @@ function App() {
       setRenderedVocab(new Map(renderedVocab));
       return;
     }
+    
     // push change to db
-    vocabDatabase.child(key).update(updatedEntry, err => {
+    vocabDatabase.child(key).update(filterObj(updatedEntry,
+      (key) => (key !== "englishString" && key !== "posString")
+    ), err => {
       err ? console.error("failed update: " + err) : console.log("successful update");
     });
     // remove from unsaved list 
@@ -463,12 +477,16 @@ function App() {
       simplified: "",
       traditional: "",
       pinyin: "",
-      english: [""],
+      english: "",
       partsOfSpeech: [""],
       fluency: "fluent",
       notes: "",
     }
     const key = vocabDatabase.push(blankVocab, err => err ? console.error("" + err) : console.log("successful add")).key;
+
+    blankVocab.englishString = "";
+    blankVocab.posString = "";
+
     setRenderedVocab(new Map(renderedVocab).set(key, blankVocab));
   }
 
@@ -582,6 +600,10 @@ const cloneVocabEntry = (vocabEntry) => {
   }
   return entryClone;
 }
+
+const filterObj = (obj, predicate) => Object.keys(obj)
+  .filter(predicate)
+  .reduce((res, key) => (res[key] = obj[key], res), {});
 
 const toPinyin = (chinese) => pinyin4js.convertToPinyinString(chinese, '', pinyin4js.WITH_TONE_MARK);
 

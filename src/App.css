@@ -36,8 +36,12 @@ textarea, input {
   background-image: none;
   background-color: transparent;
   box-shadow: none;
-  width: fit-content;
   resize: none;
+  max-width: 100px;
+}
+
+.VocabEntry>textarea[name="english"] {
+  max-width: fit-content;
 }
 
 .VocabEntry>input[type="text"] {
