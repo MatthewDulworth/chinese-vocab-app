@@ -407,7 +407,7 @@ function App() {
 
     // trim array inputs
     const updatedEntry = renderedVocab.get(key);
-    updatedEntry.english = updatedEntry.english.map(word => word.trim());
+    updatedEntry.english = updatedEntry.english.map(word => word.replace(/[\r\n\v]+/g,'').trim());
     updatedEntry.partsOfSpeech = updatedEntry.partsOfSpeech.map(pos => pos.trim());
     setRenderedVocab(new Map(renderedVocab));
 
