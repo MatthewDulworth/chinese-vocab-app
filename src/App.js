@@ -306,6 +306,10 @@ function App() {
       const vocabEntries = new Map();
       snapshot.forEach(entrySnapshot => {
         vocabEntries.set(entrySnapshot.key, entrySnapshot.val());
+
+        const entry = vocabEntries.get(entrySnapshot.key);
+        entry.englishString = entry.english.join(", ");
+        entry.posString = entry.partsOfSpeech.join(", ");
       });
       fullVocabMap.current = vocabEntries;
 
@@ -407,7 +411,7 @@ function App() {
 
     // trim array inputs
     const updatedEntry = renderedVocab.get(key);
-    updatedEntry.english = updatedEntry.english.map(word => word.replace(/[\r\n\v]+/g,'').trim());
+    updatedEntry.english = updatedEntry.english.map(word => word.replace(/[\r\n\v]+/g, '').trim());
     updatedEntry.partsOfSpeech = updatedEntry.partsOfSpeech.map(pos => pos.trim());
     setRenderedVocab(new Map(renderedVocab));
 
@@ -482,10 +486,14 @@ function App() {
     const anyPOS = partOfSpeech === "any";
     const anyText = text === "";
 
+    const entryHasText = (language !== "english") ?
+      (entry) => entry[language].includes(text) :
+      (entry) => entry.english.reduce((all, str) => all || str.includes(text), false);
+
     fullVocabMap.current.forEach((entry, key) => {
       if ((anyFluency || entry.fluency === fluency)
         && (anyPOS || entry.partsOfSpeech.includes(partOfSpeech))
-        && (anyText || entry[language].includes(text))
+        && (anyText || entryHasText(entry))
       ) {
         newRenderVocab.set(key, cloneVocabEntry(entry));
       }
