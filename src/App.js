@@ -513,7 +513,7 @@ function App() {
         validPOS={validPOS}
       />
 
-      {!signedIn && <button onClick={() => setSignInOpen(true)}>Sign In</button>}
+      {(!signedIn && !signInOpen) && <button onClick={() => setSignInOpen(true)}>Sign In</button>}
       {signedIn && <button onClick={() => signOut()}>Sign Out</button>}
       {signInOpen && <SignInDialouge signIn={signIn} handleCloseSignIn={() => setSignInOpen(false)} />}
 
