@@ -33,6 +33,12 @@
   background-color: white;
 }
 
+.VocabEntry > *:disabled {
+  color: black;
+}
+
+/* Notes */
+
 .NotesInput {
   display: flex;
   justify-content: center;
