@@ -11,13 +11,13 @@
   min-width: 100%;
   border-collapse: collapse;
   padding: 20px;
-  grid-template-columns: repeat(10, auto);
+  grid-template-columns: repeat(8, auto);
 }
 
 /* account for header having fewer elements then each entry */
 
 #VocabHeader .last {
-  grid-column-end: span 4;
+  grid-column-end: span 2;
 }
 
 /* remove row containers from grid */
@@ -33,9 +33,39 @@
   background-color: white;
 }
 
-.VocabEntry > *:disabled {
+.VocabEntry>*:disabled {
   color: black;
 }
+
+.VocabEntry>textarea {
+  border: none;
+  background-image: none;
+  background-color: transparent;
+  box-shadow: none;
+  width: fit-content;
+  resize: none;
+  font-family: inherit;
+}
+
+.VocabEntry > input[type="text"] {
+  border: none;
+  background-image: none;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.entryBtns {
+  display: flex;
+  padding: 5px;
+}
+
+.entryBtns > * {
+  margin: 5px;
+  cursor: pointer;
+}
+
+
+
 
 /* Notes */
 

@@ -4,6 +4,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/auth";
 import pinyin4js from 'pinyin4js';
+import '@fortawesome/fontawesome-free/js/all.js';
 
 var firebaseConfig = {
   apiKey: "AIzaSyDIefnuJTzI4sUlFuNoRepOM6GDMsPdHTU",
@@ -142,18 +143,57 @@ function VocabEntry({
     setNotesExpanded(false);
   }
 
+  const textAreaProps = {
+    wrap: "soft",
+    onChange: handleChange,
+    disabled: !canEdit,
+    className: "vocabCell"
+  }
+
   return (
     <div className="VocabEntry">
-      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="simplified"
-        value={simplified} disabled={!canEdit} />
-      <input type="text" onChange={handleChange} onBlur={(e) => handleEntryChineseUnfocus(e, _key)} name="traditional"
-        value={traditional} disabled={!canEdit} />
-      <input type="text" onChange={handleChange} name="pinyin" value={pinyin} disabled={!canEdit} />
-      <input type="text" onChange={handleChange} name="english" value={english} spellCheck="true" disabled={!canEdit} />
-      <input type="text" onChange={handleChange} name="partsOfSpeech" value={partsOfSpeech} spellCheck="true" disabled={!canEdit} />
-      <select onChange={handleChange} name="fluency" value={fluency} disabled={!canEdit}>{fluencyOptions}</select>
-      <input type="text" onClick={() => setNotesExpanded(true)} readOnly name="notes" value={notes} disabled={!canEdit} />
-      { notesExpanded && canEdit && <NotesInput notes={notes} handleNotesInputDone={handleNotesDone} />}
+
+      <textarea name="simplified"
+        value={simplified}
+        onBlur={(e) => handleEntryChineseUnfocus(e, _key)}
+        {...textAreaProps} />
+
+      <textarea name="traditional"
+        value={traditional}
+        onBlur={(e) => handleEntryChineseUnfocus(e, _key)}
+        {...textAreaProps} />
+
+      <textarea name="pinyin"
+        value={pinyin}
+        {...textAreaProps} />
+
+      <textarea name="english"
+        value={english}
+        spellCheck="true"
+        {...textAreaProps} />
+
+      <textarea name="partsOfSpeech"
+        value={partsOfSpeech}
+        spellCheck="true"
+        {...textAreaProps} />
+
+      <select name="fluency"
+        onChange={handleChange}
+        value={fluency}
+        className="vocabCell"
+        disabled={!canEdit}>
+        {fluencyOptions}
+      </select>
+
+      <input name="notes"
+        type="text"
+        value={notes}
+        className="vocabCell"
+        onClick={() => setNotesExpanded(true)}
+        readOnly
+        disabled={!canEdit} />
+
+      {notesExpanded && canEdit && <NotesInput notes={notes} handleNotesInputDone={handleNotesDone} />}
     </div>
   );
 }
@@ -182,9 +222,17 @@ function VocabEntryWrapper({
         handleNotesInputDone={handleNotesInputDone}
         validFluencies={validFluencies}
       />
-      <button onClick={(e) => handleEntryDelete(e, _key)} disabled={!canEdit}>Delete Entry</button>
-      <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={!canEdit || edited}>Save Changes</button>
-      <button onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={!canEdit || edited}>Discard Changes</button>
+      <div className="entryBtns">
+        <div onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={!canEdit || edited}>
+          <i className="fa fa-save"></i>
+        </div>
+        <div onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={!canEdit || edited}>
+          <i className="fa fa-undo"></i>
+        </div>
+        <div onClick={(e) => handleEntryDelete(e, _key)} disabled={!canEdit}>
+          <i className="fa fa-trash"></i>
+        </div>
+      </div>
     </form>
   );
 }
@@ -201,7 +249,6 @@ function VocabTable({
   handleNotesInputDone,
   validFluencies,
 }) {
-  console.log(canEdit);
   const tableBody = Array.from(vocabList).map(([key, vocabEntry]) => {
     return (
       <Fragment key={key}>
