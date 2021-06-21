@@ -40,7 +40,7 @@ textarea, input {
   max-width: 100px;
 }
 
-.VocabEntry>textarea[name="english"] {
+.VocabEntry>textarea[name="englishString"] {
   max-width: fit-content;
 }
 
@@ -56,9 +56,15 @@ textarea, input {
   padding: 5px;
 }
 
-.entryBtns>* {
+.entryBtns button {
+  all: unset;
   margin: 5px;
   cursor: pointer;
+}
+
+.entryBtns button:disabled {
+  opacity: 0.7;
+  color: grey;
 }
 
 /* Notes */

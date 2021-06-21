@@ -229,15 +229,15 @@ function VocabEntryWrapper({
         validFluencies={validFluencies}
       />
       <div className="entryBtns">
-        <div onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={!canEdit || edited}>
+        <button onClick={(e) => handleEntrySaveChanges(e, _key)} disabled={!canEdit || edited}>
           <i className="fa fa-save"></i>
-        </div>
-        <div onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={!canEdit || edited}>
+        </button>
+        <button onClick={(e) => handleEntryDiscardChanges(e, _key)} disabled={!canEdit || edited}>
           <i className="fa fa-undo"></i>
-        </div>
-        <div onClick={(e) => handleEntryDelete(e, _key)} disabled={!canEdit}>
+        </button>
+        <button onClick={(e) => handleEntryDelete(e, _key)} disabled={!canEdit}>
           <i className="fa fa-trash"></i>
-        </div>
+        </button>
       </div>
     </form>
   );
@@ -374,12 +374,7 @@ function App() {
     const updatedEntry = newRenderVocab.get(key);
     const property = e.target.name;
 
-    if (Array.isArray(updatedEntry[property])) {
-      const newArray = e.target.value.split(",");
-      updatedEntry[property] = newArray;
-    } else {
-      updatedEntry[property] = e.target.value;
-    }
+    updatedEntry[property] = e.target.value;
     setEditedVocab(new Set(editedVocab).add(key));
     setRenderedVocab(newRenderVocab);
   }
@@ -601,8 +596,10 @@ const cloneVocabEntry = (vocabEntry) => {
   return entryClone;
 }
 
+// https://stackoverflow.com/a/37616104/9396808
 const filterObj = (obj, predicate) => Object.keys(obj)
   .filter(predicate)
+  // eslint-disable-next-line no-sequences
   .reduce((res, key) => (res[key] = obj[key], res), {});
 
 const toPinyin = (chinese) => pinyin4js.convertToPinyinString(chinese, '', pinyin4js.WITH_TONE_MARK);
